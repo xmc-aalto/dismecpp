@@ -1,0 +1,19 @@
+{
+  "minimizer": {
+    "objective": {"type":  "Basic"},
+    "grad_norm": {"type":  "Basic"},
+    "linesearch_step": {"type":  "Basic"},
+    "cg_iters": {"type":  "Basic"},
+    "iter_time": {"type":  "Basic"},
+    "grad_norm_0": {"type":  "Basic"},
+    "linesearch_fail": {"type":  "Tagged", "tag": "iteration"}
+  },
+  "result": {
+    "final_loss": {"type":  "Basic"},
+    "final_grad": {"type":  "Basic"},
+    "initial_loss": {"type":  "Basic"},
+    "initial_grad": {"type":  "Basic"},
+    "iters": {"type":  "Basic"},
+    "duration": {"type":  "Basic"}
+  }
+}

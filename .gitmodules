@@ -1,0 +1,28 @@
+[submodule "deps/spdlog"]
+	path = deps/spdlog
+	url = https://github.com/gabime/spdlog.git
+	shallow = true
+[submodule "CLI11"]
+	path = deps/CLI11
+	url = https://github.com/CLIUtils/CLI11.git
+	shallow = true
+[submodule "doctest"]
+	path = deps/doctest
+	url = https://github.com/onqtam/doctest
+	shallow = true
+[submodule "json"]
+	path = deps/json
+	url = https://github.com/nlohmann/json.git
+	shallow = true
+[submodule "deps/pybind11"]
+	path = deps/pybind11
+	url = https://github.com/pybind/pybind11.git
+	shallow = true
+[submodule "deps/nanobench"]
+	path = deps/nanobench
+	url = https://github.com/martinus/nanobench.git
+	shallow = true
+[submodule "eigen"]
+	path = deps/eigen
+	shallow = true
+	url = https://gitlab.com/libeigen/eigen.git
