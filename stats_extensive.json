@@ -1,0 +1,23 @@
+{
+  "minimizer": {
+    "objective": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6},
+    "grad_norm": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6},
+    "linesearch_step": {"type":  "LogHist", "bins": 50, "min": 1e-2, "max": 1.1},
+    "cg_iters": {"type":  "LinHist", "bins": 100, "min": 0, "max": 50},
+    "iter_time": {"type":  "LogHist", "bins": 100, "min": 1, "max": 1e9},
+    "gradient": {"type":  "LogHist", "bins": 100, "min": 1e-3, "max": 1e2},
+    "preconditioner": {"type":  "LogHist", "bins": 100, "min": 1e-3, "max": 1e2},
+    "weight_vector": {"type":  "LogHist", "bins": 100, "min": 1e-3, "max": 1e2},
+    "linesearch_fail": {"type":  "Tagged", "tag": "iteration"},
+    "grad_norm_0":  {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6}
+  },
+  "result": {
+    "final_loss": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6},
+    "final_grad": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6},
+    "initial_loss": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6},
+    "initial_grad": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e6},
+    "iters": {"type":  "LinHist", "bins": 50, "min": 0, "max": 50},
+    "duration": {"type":  "LogHist", "bins": 100, "min": 1, "max": 1e6},
+    "weights": {"type":  "LogHist", "bins": 100, "min": 1e-2, "max": 1e3}
+  }
+}

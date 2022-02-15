@@ -1,0 +1,12 @@
+{
+  "objective": {
+    "perf_value": {"type":  "Basic"},
+    "perf_preconditioner": {"type":  "Basic"},
+    "perf_grad_at_zero": {"type":  "Basic"},
+    "perf_gradient": {"type":  "Basic"},
+    "perf_hessian": {"type":  "Basic"},
+    "perf_grad_and_pre": {"type":  "Basic"},
+    "perf_matmul": {"type":  "Basic"},
+    "perf_proj_to_line": {"type":  "Basic"}
+  }
+}
