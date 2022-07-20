@@ -18,9 +18,12 @@
 #include "spdlog/spdlog.h"
 #include "io/numpy.h"
 #include "io/common.h"
+#include "app.h"
 #include <future>
 
-extern "C" void openblas_set_num_threads(int num_threads);
+using namespace dismec;
+
+// extern "C" void openblas_set_num_threads(int num_threads);
 
 
 class TrainingProgram {
@@ -33,14 +36,9 @@ private:
     // command line parameters
     //  source data
     void setup_source_cmdline();
-    std::string DataSetFile;
-    std::string LabelFile;
-    bool OneBasedIndex = false;
-    bool NormalizeInstances = false;
-    DatasetTransform TransformData = DatasetTransform::IDENTITY;
     bool ReorderFeatures = false;
-    CLI::Option* AugmentForBias;
-    real_t Bias;
+
+    DataProcessing DataProc;
 
     // target model
     void setup_save_cmdline();
@@ -78,8 +76,8 @@ private:
 
     std::string InitMode;
     std::optional<real_t> BiasInitValue;
-    real_t AvgOfPos_PFac = 1;
-    real_t AvgOfPos_NFac = -2;
+    real_t MSI_PFac = 1;
+    real_t MSI_NFac = -2;
     int InitMaxPos = 1;
 
     RegularizerType Regularizer = RegularizerType::REG_L2;
@@ -92,7 +90,7 @@ private:
 
     // statistics
     std::string StatsOutFile = "stats.json";
-    std::string StatsLevelFile = "stats_basic.json";
+    std::string StatsLevelFile = {};
 
 
     // others
@@ -141,30 +139,11 @@ void TrainingProgram::setup_save_cmdline()
 }
 
 void TrainingProgram::setup_source_cmdline() {
-    app.add_option("problem-file", DataSetFile,
-                   "The file from which the data will be loaded.")->required()->check(CLI::ExistingFile);
-
-    app.add_flag("--xmc-one-based-index", OneBasedIndex,
-                 "If this flag is given, then we assume that the input dataset in xmc format"
-                 " has one-based indexing, i.e. the first label and feature are at index 1  (as opposed to the usual 0)");
-    AugmentForBias = app.add_flag("--augment-for-bias", Bias,
-                 "If this flag is given, then all training examples will be augmented with an additional"
-                 "feature of value 1 or the specified value.")->default_val(1.0);
-    app.add_flag("--normalize-instances", NormalizeInstances,
-                 "If this flag is given, then the feature vectors of all instances are normalized to one.");
-    app.add_option("--transform", TransformData, "Apply a transformation to the features of the dataset.")->default_str("identity")
-        ->transform(CLI::Transformer(std::map<std::string, DatasetTransform>{
-            {"identity",     DatasetTransform::IDENTITY},
-            {"log-one-plus", DatasetTransform::LOG_ONE_PLUS},
-            {"one-plus-log", DatasetTransform::ONE_PLUS_LOG}
-        },CLI::ignore_case));
-
+    DataProc.setup_data_args(app);
     app.add_flag("--reorder-features", ReorderFeatures,
                  "If this flag is given, then the feature columns are sorted by the frequency before training. "
                  "This can lead to fast computations in case the number of features is very large and their frequencies imbalanced, "
                  "because it may improve data locality.");
-    app.add_option("--label-file", LabelFile, "For SLICE-type datasets, this specifies where the labels can be found")->check(CLI::ExistingFile);
-
 }
 
 void TrainingProgram::setup_label_range() {
@@ -338,10 +317,10 @@ TrainingProgram::TrainingProgram() {
                                            "is allowed to increase.");
 
     app.add_option("--init-mode", InitMode, "How to initialize the weight vectors")
-        ->check(CLI::IsMember({"zero", "mean", "bias", "avg-of-pos", "multi-pos", "ova-primal"}));
+        ->check(CLI::IsMember({"zero", "mean", "bias", "msi", "multi-pos", "ova-primal"}));
     app.add_option("--bias-init-value", BiasInitValue, "The value that is assigned to the bias weight for bias-init.");
-    app.add_option("--avg-of-pos-pos", AvgOfPos_PFac, "Positive target for avg-of-pos init");
-    app.add_option("--avg-of-pos-neg", AvgOfPos_NFac, "Negative target for avg-of-pos init");
+    app.add_option("--msi-pos", MSI_PFac, "Positive target for msi init");
+    app.add_option("--msi-neg", MSI_NFac, "Negative target for msi init");
     app.add_option("--max-num-pos", InitMaxPos, "Number of positives to consider for `multi-pos` initialization")->check(CLI::NonNegativeNumber);
 
     app.add_option("--record-stats", StatsLevelFile,
@@ -421,14 +400,14 @@ DismecTrainingConfig TrainingProgram::make_config(const std::shared_ptr<MultiLab
     std::shared_ptr<init::WeightInitializationStrategy> init_strategy;
     if(InitMode == "mean") {
         config.Init = init::create_constant_initializer(-get_mean_feature(*data->get_features()));
-    } else if(InitMode == "avg-of-pos") {
-        config.Init = init::create_feature_mean_initializer(data, AvgOfPos_PFac, AvgOfPos_NFac);
+    } else if(InitMode == "msi") {
+        config.Init = init::create_feature_mean_initializer(data, MSI_PFac, MSI_NFac);
     } else if(InitMode == "multi-pos") {
-        config.Init = init::create_multi_pos_mean_strategy(data, InitMaxPos, AvgOfPos_PFac, AvgOfPos_NFac);
+        config.Init = init::create_multi_pos_mean_strategy(data, InitMaxPos, MSI_PFac, MSI_NFac);
     } else if(InitMode == "ova-primal") {
         config.Init = init::create_ova_primal_initializer(data, config.Regularizer, Loss);
     } else if(InitMode == "bias" || (InitMode.empty() && BiasInitValue.has_value())) {
-        if(AugmentForBias->count() > 0) {
+        if(DataProc.augment_for_bias()) {
             DenseRealVector init_vec(data->num_features());
             init_vec.setZero();
             init_vec.coeffRef(init_vec.size()-1) = BiasInitValue.value_or(-1.0);
@@ -471,32 +450,7 @@ int TrainingProgram::run(int argc, const char** argv)
     auto start_time = std::chrono::steady_clock::now();
     auto timeout_time = start_time + std::chrono::milliseconds(Timeout);
 
-    spdlog::info("Loading training data from file '{}'", DataSetFile);
-    auto data = std::make_shared<MultiLabelData>([&]() {
-        if(LabelFile.empty()) {
-            return read_xmc_dataset(DataSetFile, OneBasedIndex ? io::IndexMode::ONE_BASED : io::IndexMode::ZERO_BASED);
-        } else {
-            return io::read_slice_dataset(DataSetFile, LabelFile);
-        }
-    } ());
-
-    if(TransformData != DatasetTransform::IDENTITY) {
-        if(Verbose >= 0)
-            spdlog::info("Applying data transformation");
-        transform_features(*data, TransformData);
-    }
-
-    if(NormalizeInstances) {
-        if(Verbose >= 0)
-            spdlog::info("Normalizing instances.");
-        normalize_instances(*data);
-    }
-
-    if(!AugmentForBias->empty()) {
-        if(Verbose >= 0)
-            spdlog::info("Appending bias features with value {}", Bias);
-        augment_features_with_bias(*data, Bias);
-    }
+    auto data = DataProc.load(Verbose);
 
     std::shared_ptr<postproc::PostProcessFactory> permute_post_proc;
     if(ReorderFeatures) {
@@ -544,6 +498,11 @@ int TrainingProgram::run(int argc, const char** argv)
 
     if(BatchSize <= 0) {
         BatchSize = data->num_labels();
+    }
+
+    if(Verbose >= 0) {
+        spdlog::info("handled preprocessing in {} seconds",
+                     std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time).count() );
     }
 
     // batched training

@@ -22,7 +22,7 @@ struct VISITOR {                                                                
     }                                                                                   \
 }
 
-namespace eigen_visitors {
+namespace dismec::eigen_visitors {
     EIGEN_VISITORS_IMPLEMENT_VISITOR(ColsVisitor, EigenBase, cols);
     EIGEN_VISITORS_IMPLEMENT_VISITOR(RowsVisitor, EigenBase, rows);
     EIGEN_VISITORS_IMPLEMENT_VISITOR(SizeVisitor, EigenBase, size);
@@ -30,7 +30,7 @@ namespace eigen_visitors {
 
 #undef EIGEN_VISITORS_IMPLEMENT_VISITOR
 
-namespace types {
+namespace dismec::types {
     class VarWrapBase {};
 
     template<class... Types>

@@ -9,13 +9,9 @@
 #include <iosfwd>
 #include <string>
 #include <string_view>
+#include "matrix_types.h"
 
-namespace Eigen {
-    template<typename Derived>
-    class DenseBase;
-}
-
-namespace io {
+namespace dismec::io {
     /*!
      * \brief Check whether the stream is a npy file.
      * \details This peeks at the next 6 bytes of target and checks whether they form the npy magic string.
@@ -89,6 +85,12 @@ namespace io {
     std::string make_npy_description(const Eigen::DenseBase<Derived>& matrix) {
         return make_npy_description(data_type_string<typename Derived::Scalar>(), !Derived::IsRowMajor, matrix.rows(), matrix.cols());
     }
+
+    /*!
+     * \brief Loads a matrix from a numpy array.
+     */
+     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> load_matrix_from_npy(std::istream& source);
+     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> load_matrix_from_npy(const std::string& path);
 }
 
 #endif //DISMEC_NUMPY_H

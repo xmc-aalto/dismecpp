@@ -7,9 +7,9 @@
 #define DISMEC_NULL_H
 
 #include "solver/minimizer.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 
-namespace solvers {
+namespace dismec::solvers {
     /*!
      * \brief Optimizer that does not change the initial vector.
      * \details This class is provided for testing purposes, e.g. to save the model consisting only

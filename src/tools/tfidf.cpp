@@ -9,6 +9,8 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/stopwatch.h"
 
+using namespace dismec;
+
 void apply_tfidf(SparseFeatures& features, const DenseRealVector& idf) {
     auto last = features.innerIndexPtr() + features.nonZeros();
     for(int row = 0; row < features.rows(); ++row) {

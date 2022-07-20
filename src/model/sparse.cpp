@@ -7,7 +7,8 @@
 #include "spdlog/spdlog.h"
 #include "utils/eigen_generic.h"
 
-using namespace model;
+using namespace dismec;
+using namespace dismec::model;
 
 namespace {
     //! \todo we have this code twice now.

@@ -6,22 +6,24 @@
 #include <utility>
 
 #include "training/postproc.h"
+#include "data/types.h"
 #include "solver/minimizer.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "training/postproc/generic.h"
 #include "stats/collection.h"
 #include "stats/timer.h"
 
 namespace {
-    stats::stat_id_t STAT_CUTOFF{0};
-    stats::stat_id_t STAT_NNZ{1};
-    stats::stat_id_t STAT_BINARY_SEARCH_STEPS{2};
-    stats::stat_id_t STAT_INITIAL_STEPS{3};
-    stats::stat_id_t STAT_DURATION{4};
+    using dismec::stats::stat_id_t;
+    stat_id_t STAT_CUTOFF{0};
+    stat_id_t STAT_NNZ{1};
+    stat_id_t STAT_BINARY_SEARCH_STEPS{2};
+    stat_id_t STAT_INITIAL_STEPS{3};
+    stat_id_t STAT_DURATION{4};
 };
 
 
-namespace postproc {
+namespace dismec::postproc {
     class Sparsify : public PostProcessor {
     public:
         Sparsify(std::shared_ptr<objective::Objective> objective, real_t tolerance) :
@@ -36,13 +38,13 @@ namespace postproc {
             declare_stat(STAT_DURATION, {"duration", "µs"});
         }
     private:
-        void process(label_id_t label_id, DenseRealVector& weight_vector, solvers::MinimizationResult& result) override;
+        void process(label_id_t label_id, Eigen::Ref<DenseRealVector> weight_vector, solvers::MinimizationResult& result) override;
 
         std::shared_ptr<objective::Objective> m_Objective;
         real_t m_Tolerance;
         HashVector m_WorkingVector;
 
-        static int make_sparse(DenseRealVector& target, const DenseRealVector& source, real_t cutoff) {
+        static int make_sparse(Eigen::Ref<DenseRealVector> target, const Eigen::Ref<const DenseRealVector>& source, real_t cutoff) {
             int nnz = 0;
             for(int i = 0; i < target.size(); ++i) {
                 auto w_i = source.coeff(i);
@@ -66,7 +68,7 @@ namespace postproc {
 
 
 
-        UpperBoundResult find_initial_bounds(DenseRealVector& weight_vector, real_t tolerance, real_t initial_lower);
+        UpperBoundResult find_initial_bounds(Eigen::Ref<DenseRealVector> weight_vector, real_t tolerance, real_t initial_lower);
 
         real_t m_NumValues = 1;
         real_t m_SumLogVal = std::log(0.02);
@@ -75,7 +77,7 @@ namespace postproc {
 
 
 
-    void Sparsify::process(label_id_t label_id, DenseRealVector& weight_vector, solvers::MinimizationResult& result) {
+    void Sparsify::process(label_id_t label_id, Eigen::Ref<DenseRealVector> weight_vector, solvers::MinimizationResult& result) {
         auto timer = make_timer(STAT_DURATION);
         m_WorkingVector = weight_vector;
         real_t tolerance = (1 + m_Tolerance) * result.FinalValue + real_t{1e-5};
@@ -113,7 +115,7 @@ namespace postproc {
         record(STAT_NNZ, float(100 * nnz) / weight_vector.size());
     }
 
-    Sparsify::UpperBoundResult Sparsify::find_initial_bounds(DenseRealVector& weight_vector, real_t tolerance, real_t initial_lower)
+    Sparsify::UpperBoundResult Sparsify::find_initial_bounds(Eigen::Ref<DenseRealVector> weight_vector, real_t tolerance, real_t initial_lower)
     {
         real_t mean_log = m_SumLogVal / m_NumValues;
         real_t std_log = std::sqrt(m_SumSqrLog / m_NumValues - mean_log*mean_log + real_t{1e-5});
@@ -163,6 +165,6 @@ namespace postproc {
     }
 }
 
-std::shared_ptr<postproc::PostProcessFactory> postproc::create_sparsify(real_t tolerance) {
+std::shared_ptr<dismec::postproc::PostProcessFactory> dismec::postproc::create_sparsify(real_t tolerance) {
     return std::make_shared<GenericPostProcFactory<Sparsify, real_t>>(tolerance);
 }

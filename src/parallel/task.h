@@ -6,28 +6,20 @@
 #ifndef DISMEC_TASK_H
 #define DISMEC_TASK_H
 
-#include <cstdint>
+#include "utils/opaque_int.h"
 
-namespace parallel {
-
+namespace dismec::parallel {
     /*!
+
      * \brief Strong typedef for an int to signify a thread id.
      * \details This value represents an id for a thread. These IDs
      * are only unique within a single run, and can be used (with the
      * `to_index()` method to manage thread-local data.
+     * \internal Implemented as a subclass of `opaque_int_type` instead of a typedef
+     * because this makes forward declarations easier.
      */
-    class thread_id_t {
-    public:
-        explicit thread_id_t(std::int_fast32_t v) : m_Value(v) {}
-        explicit operator std::int_fast32_t() const {
-            return m_Value;
-        }
-
-        [[nodiscard]] std::int_fast32_t to_index() const {
-            return m_Value;
-        }
-    private:
-        std::int_fast32_t m_Value;
+    class thread_id_t : public opaque_int_type<thread_id_t> {
+        using opaque_int_type::opaque_int_type;
     };
 
     /*!
@@ -41,7 +33,7 @@ namespace parallel {
      */
     class TaskGenerator {
     public:
-        using thread_id_t = ::parallel::thread_id_t;
+        using thread_id_t = dismec::parallel::thread_id_t;
 
         virtual ~TaskGenerator() = default;
         [[nodiscard]] virtual long num_tasks() const = 0;

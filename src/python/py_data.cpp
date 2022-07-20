@@ -9,6 +9,7 @@
 #include "io/xmc.h"
 #include "io/slice.h"
 
+using namespace dismec;
 using PyDataSet = std::shared_ptr<DatasetBase>;
 
 #define PY_PROPERTY(function) \

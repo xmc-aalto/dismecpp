@@ -7,10 +7,16 @@
 #define DISMEC_HISTOGRAM_H
 
 #include "stats_base.h"
+#if defined __has_include
+#if __has_include(<boost/histogram.hpp>)
 #include <boost/histogram.hpp>
+#define DISMEC_STATS_SUPPORT_HISTOGRAM 1
+#endif
+#endif
 
-namespace stats
+namespace dismec::stats
 {
+#if DISMEC_STATS_SUPPORT_HISTOGRAM
     template<class Axis>
     class HistogramStat final : public StatImplBase<HistogramStat<Axis>> {
     public:
@@ -63,6 +69,9 @@ namespace stats
 
         TagContainer m_Tag;
     };
+#else
+#warning "Compiling without histogram support"
+#endif
 
     std::unique_ptr<Statistics> make_linear_histogram(int bins, real_t min, real_t max);
     std::unique_ptr<Statistics> make_logarithmic_histogram(int bins, real_t min, real_t max);

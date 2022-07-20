@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(DiSMEC)
 
 find_package(Threads REQUIRED)
-find_package(BLAS REQUIRED)
-find_package(Boost 1.70.0 REQUIRED)
+find_package(Boost REQUIRED)
 
 option(BUILD_DEVEL_DOCS "If this is set to ON, then the doxygen documentation generated will be to help develop
 the library itself, i.e. it will contain all the internal documentation. If set to OFF, only the parts that are

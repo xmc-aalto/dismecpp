@@ -4,16 +4,16 @@
 // SPDX-License-Identifier: MIT
 
 #include "subset.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "stats/collection.h"
 #include "stats/timer.h"
 #include "data/data.h"
 #include "objective/objective.h"
+#include <Eigen/Dense>
 
-using namespace init;
+using namespace dismec::init;
 
-
-namespace init {
+namespace dismec::init {
     template<bool Sparse>
     struct TypeLookup;
 
@@ -209,6 +209,6 @@ MultiPosMeanStrategy::make_initializer(const std::shared_ptr<const GenericFeatur
 }
 
 
-std::shared_ptr<WeightInitializationStrategy> init::create_multi_pos_mean_strategy(std::shared_ptr<DatasetBase> data, int max_pos, real_t pos, real_t neg) {
+std::shared_ptr<WeightInitializationStrategy> dismec::init::create_multi_pos_mean_strategy(std::shared_ptr<DatasetBase> data, int max_pos, real_t pos, real_t neg) {
     return std::make_shared<MultiPosMeanStrategy>(std::move(data), pos, neg, max_pos);
 }

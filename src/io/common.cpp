@@ -5,6 +5,20 @@
 
 #include "common.h"
 
+using namespace dismec;
+
+std::string io::detail::print_char(char c) {
+    std::string result;
+    if(std::isprint(c)) {
+        result.push_back(c);
+        return result;
+    } else {
+        result.push_back('\\');
+        result.append(std::to_string((int)c));
+        return result;
+    }
+}
+
 std::ostream& io::write_vector_as_text(std::ostream& stream, const Eigen::Ref<const DenseRealVector>& data)
 {
     if(data.size() == 0) {
@@ -31,6 +45,77 @@ std::istream& io::read_vector_from_text(std::istream& stream, Eigen::Ref<DenseRe
     }
 
     return stream;
+}
+
+io::MatrixHeader io::parse_header(const std::string& content) {
+    std::stringstream parse_header{content};
+    long NumRows;
+    long NumCols;
+
+    parse_header >> NumRows >> NumCols;
+    if (parse_header.fail()) {
+        THROW_ERROR("Error parsing header: '{}'", content);
+    }
+
+    // check validity of numbers
+    if(NumRows <= 0) {
+        THROW_ERROR("Invalid number of rows {} specified in header '{}'", NumRows, content);
+    }
+    if(NumCols <= 0) {
+        THROW_ERROR("Invalid number of rows {} specified in header '{}'", NumCols, content);
+    }
+
+    std::string rest;
+    parse_header >> rest;
+    if(!rest.empty()) {
+        THROW_ERROR("Found additional text '{}' in header '{}'", rest, content);
+    }
+
+    return {NumRows, NumCols};
+}
+
+io::LoLBinarySparse io::read_binary_matrix_as_lil(std::istream& source) {
+    // for now, labels are assumed to come from a text file
+    std::string line_buffer;
+    std::getline(source, line_buffer);
+    auto header = parse_header(line_buffer);
+
+    std::vector<std::vector<long>> label_data;
+    label_data.resize(header.NumCols);
+
+    long example = 0;
+    long num_rows = header.NumRows;
+    long num_cols = header.NumCols;
+
+    while (std::getline(source, line_buffer)) {
+        if (line_buffer.empty())
+            continue;
+        if (line_buffer.front() == '#')
+            continue;
+
+        if(example >= num_rows) {
+            THROW_ERROR("Encountered row {:5} but only expected {:5} rows.", example, num_rows);
+        }
+
+        try {
+            io::parse_sparse_vector_from_text(line_buffer.c_str(), [&](long index, double value) {
+                long adjusted_index = index;
+                if (adjusted_index >= num_cols || adjusted_index < 0) {
+                    THROW_ERROR("Encountered index {:5}. Number of columns "
+                                "was specified as {}.", index, num_cols);
+                }
+                // filter out explicit zeros
+                if (value != 1) {
+                    THROW_ERROR("Encountered value {} at index {}.", value, index);
+                }
+                label_data[adjusted_index].push_back(example);
+            });
+        } catch (std::runtime_error& e) {
+            THROW_ERROR("Error reading example {}: {}.", example + 1, e.what());
+        }
+        ++example;
+    }
+    return {num_rows, num_cols, std::move(label_data)};
 }
 
 #include "doctest.h"
@@ -175,7 +260,12 @@ TEST_CASE("parse sparse vector errors") {
     CHECK_THROWS(io::parse_sparse_vector_from_text(" 5", [&](long i, double v) {}));
     CHECK_THROWS(io::parse_sparse_vector_from_text(" 5 ", [&](long i, double v) {}));
     CHECK_THROWS(io::parse_sparse_vector_from_text(" 5-4", [&](long i, double v) {}));
-    CHECK_THROWS(io::parse_sparse_vector_from_text(" 5 : 2.0", [&](long i, double v) {}));
+    CHECK_THROWS_WITH(io::parse_sparse_vector_from_text(" 5 : 2.0", [&](long i, double v) {}),
+                      "Error parsing feature index. Expected ':' at position 2, got ' '");
+    CHECK_THROWS_WITH(io::parse_sparse_vector_from_text(" 5", [&](long i, double v) {}),
+                      "Error parsing feature index. Expected ':' at position 2, got '\\0'");
+    CHECK_THROWS_WITH(io::parse_sparse_vector_from_text("1:3.0 5", [&](long i, double v) {}),
+                      "Error parsing feature index. Expected ':' at position 7, got '\\0'");
     CHECK_THROWS(io::parse_sparse_vector_from_text(":2.0", [&](long i, double v) {}));
 }
 
@@ -193,4 +283,36 @@ TEST_CASE("binary dump/load") {
     for(int i = 0; i < data.size(); ++i) {
         CHECK(data[i] == load[i]);
     }
+}
+
+//! \test Checks that valid XMC headers are parsed correctly
+TEST_CASE("parse valid header") {
+    std::string input;
+    SUBCASE("minimal") {
+        input = "12 54";
+    }
+    SUBCASE("trailing space") {
+        input = "12 54 ";
+    }
+    SUBCASE("tab separated") {
+        input = "12\t 54";
+    }
+    io::MatrixHeader valid = io::parse_header(input);
+    CHECK(valid.NumRows == 12);
+    CHECK(valid.NumCols == 54);
+}
+
+
+/// \test Check that invalid XMC headers are causing an exception. The headers are invalid if either the number of
+/// data does not match, of if any of the supplied counts are non-positive.
+TEST_CASE("parse invalid header") {
+    // check number of arguments
+    CHECK_THROWS(io::parse_header("6 "));
+    CHECK_THROWS(io::parse_header("6 1 5"));
+
+    // we also know that something is wrong if any of the counts are <= 0
+    CHECK_THROWS(io::parse_header("0 5"));
+    CHECK_THROWS(io::parse_header("5 0"));
+    CHECK_THROWS(io::parse_header("-1 5"));
+    CHECK_THROWS(io::parse_header("5 -1"));
 }

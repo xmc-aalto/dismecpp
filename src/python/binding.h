@@ -10,6 +10,7 @@
 #include "pybind11/eigen.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl/filesystem.h"
+#include "fwd.h"
 
 #include <memory>
 
@@ -77,14 +78,8 @@ std::shared_ptr<T> wrap_shared(T&& source) {
 
 namespace py = pybind11;
 
-// all the forward declarations we need
-class DatasetBase;
-class WeightingScheme;
-namespace model {
-    class Model;
-};
-using PyDataSet = std::shared_ptr<DatasetBase>;
-using PyWeighting = std::shared_ptr<WeightingScheme>;
-using PyModel = PyWrapper<model::Model>;
+using PyDataSet = std::shared_ptr<dismec::DatasetBase>;
+using PyWeighting = std::shared_ptr<dismec::WeightingScheme>;
+using PyModel = PyWrapper<dismec::model::Model>;
 
 #endif //DISMEC_SRC_UTILS_BINDING_H

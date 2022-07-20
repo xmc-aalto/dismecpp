@@ -20,7 +20,8 @@
 #include "parallel/numa.h"
 
 using json = nlohmann::json;
-using namespace io::model;
+using namespace dismec;
+using namespace dismec::io::model;
 
 namespace {
     /// Translation from \ref io::model::WeightFormat to `std::string`.
@@ -223,7 +224,9 @@ std::future<WeightFileEntry> PartialModelSaver::add_model(const std::shared_ptr<
         parallel::pin_to_data(model.get());
         auto now = steady_clock::now();
         save_weights_dispatch(target, *model, m_Options);
-        spdlog::info("Saving partial model took {} ms", duration_cast<milliseconds>(steady_clock::now() - now).count());
+        spdlog::info("Saving partial model for weights {}-{} took {} ms",
+                     model->labels_begin().to_index(), model->labels_begin().to_index() + model->num_weights(),
+                     duration_cast<milliseconds>(steady_clock::now() - now).count());
         return new_weights_file;
     });
 }
@@ -426,7 +429,7 @@ std::shared_ptr<Model> PartialModelLoader::load_model(int index) const {
     path weights_file = meta_file_path();
     std::fstream source(weights_file.replace_filename(entry.FileName), std::fstream::in);
     if(!source.is_open()) {
-        THROW_ERROR("Could not open weights file ", weights_file.replace_filename(entry.FileName).string());
+        THROW_ERROR("Could not open weights file '{}'", weights_file.replace_filename(entry.FileName).string());
     }
     read_weights_dispatch(source, entry.Format, *model);
     auto duration = std::chrono::steady_clock::now() - start;
@@ -435,6 +438,27 @@ std::shared_ptr<Model> PartialModelLoader::load_model(int index) const {
     return model;
 }
 
+bool PartialModelLoader::validate() const {
+    bool valid = true;
+    for(auto& entry: m_SubFiles) {
+        path weights_file = meta_file_path();
+        auto wf = weights_file.replace_filename(entry.FileName);
+
+        // check existence
+        if(!std::filesystem::exists(wf)) {
+            spdlog::error("Weight file '{}' does not exist!", wf.string());
+            valid = false;
+        }
+
+        // check if we can actually open it
+        std::fstream source(weights_file.replace_filename(entry.FileName), std::fstream::in);
+        if(!source.is_open()) {
+            spdlog::error("Could not open weight file '{}'", wf.string());
+            valid = false;
+        }
+    }
+    return valid;
+}
 
 
 #include "doctest.h"
@@ -454,6 +478,7 @@ using ::model::PartialModelSpec;
 TEST_CASE("partial model writer verifier") {
     SaveOption options;
     options.Format = WeightFormat::NULL_FORMAT;
+    std::filesystem::create_directory("test_data");
     PartialModelSaver pms("test_data/pms-test", options);
 
     auto first_part = std::make_shared<DenseModel>(4, PartialModelSpec{label_id_t{1}, 4, 20});

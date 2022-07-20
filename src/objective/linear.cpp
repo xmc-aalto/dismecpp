@@ -8,10 +8,11 @@
 #include "utils/throw_error.h"
 #include "stats/timer.h"
 
-using namespace objective;
+using namespace dismec;
+using namespace dismec::objective;
 
 namespace {
-    stats::stat_id_t STAT_PERF_MATMUL{7};
+    dismec::stats::stat_id_t STAT_PERF_MATMUL{7};
 }
 
 LinearClassifierBase::LinearClassifierBase(std::shared_ptr<const GenericFeatureMatrix> X) :

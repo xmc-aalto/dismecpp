@@ -11,7 +11,7 @@
 #include <string>
 #include <nlohmann/json_fwd.hpp>
 
-namespace stats {
+namespace dismec::stats {
     class StatisticsCollection;
 
     /*!

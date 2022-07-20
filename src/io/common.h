@@ -19,7 +19,11 @@
 
 #define THROW_ERROR(...) THROW_EXCEPTION(std::runtime_error, __VA_ARGS__)
 
-namespace io {
+namespace dismec::io {
+    namespace detail {
+        std::string print_char(char c);
+    }
+
     /*!
      * \brief parses sparse features given in index:value text format.
      * \details The `callback` is called with index and value of each feature. The features are expected for be
@@ -32,6 +36,7 @@ namespace io {
      */
     template<class F>
     void parse_sparse_vector_from_text(const char* feature_part, F&& callback) {
+        const char* start = feature_part;
         while(*feature_part) {
             char* result;
             errno = 0;
@@ -52,7 +57,7 @@ namespace io {
                 }
                 THROW_ERROR("Error parsing feature. Missing feature index.");
             } else if(*result != ':') {
-                THROW_ERROR("Error parsing feature index. Expected ':', got '{}' : {}", *result);
+                THROW_ERROR("Error parsing feature index. Expected ':' at position {}, got '{}'", (result - start), detail::print_char(*result));
             } else if(errno != 0) {
                 THROW_ERROR("Error parsing feature index. Errno={}: '{}'", errno, strerror(errno));
             }
@@ -61,7 +66,7 @@ namespace io {
             char* after_feature;
             double value = std::strtod(result+1, &after_feature);
             if(result + 1 == after_feature) {
-                THROW_ERROR("Error parsing feature:. Missing feature value.");
+                THROW_ERROR("Error parsing feature: Missing feature value.");
             } else if(errno != 0) {
                 THROW_ERROR("Error parsing feature value. Errno={}: '{}'", errno, strerror(errno));
             }
@@ -107,6 +112,29 @@ namespace io {
         }
     }
 
+    /// \brief Collects the rows and columns parsed from a plain-text matrix file
+    struct MatrixHeader {
+        long NumRows;
+        long NumCols;
+    };
+
+    /// Given a string containing a matrix header, parses it into rows and columns.
+    /// The input string should contain exactly two positive integers, otherwise and exception will be thrown.
+    MatrixHeader parse_header(const std::string& content);
+
+    /*!
+     * \brief Binary Sparse Matrix in List-of-Lists format
+     * \details Since the matrix is binary, we do not store the actual values, only the location of the non-zeros.
+     */
+    struct LoLBinarySparse {
+        long NumRows;
+        long NumCols;
+        std::vector<std::vector<long>> NonZeros;
+    };
+
+    /// Reads a sparse binary matrix file in the format index:1.0 as a list-of-list of the non-zero entries.
+    /// The first line of the file should be the shape of the matrix.
+    LoLBinarySparse read_binary_matrix_as_lil(std::istream& source);
 }
 
 #endif //DISMEC_COMMON_H

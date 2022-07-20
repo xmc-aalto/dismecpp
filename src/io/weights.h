@@ -7,14 +7,11 @@
 #define DISMEC_WEIGHTS_H
 
 #include <iosfwd>
+#include "fwd.h"
 
-namespace model {
-    class Model;
-}
-
-namespace io::model
+namespace dismec::io::model
 {
-    using ::model::Model;
+    using dismec::model::Model;
 
     /*!
      * \brief Saves the dense weights in a plain-text format.

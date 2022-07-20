@@ -4,12 +4,13 @@
 // SPDX-License-Identifier: MIT
 
 #include "training/postproc.h"
+#include "data/types.h"
 
-namespace postproc {
+namespace dismec::postproc {
     class CombinePostProcessor : public PostProcessor {
     public:
         explicit CombinePostProcessor(std::vector<std::unique_ptr<PostProcessor>> children);
-        void process(label_id_t label_id, DenseRealVector& weight_vector, solvers::MinimizationResult& result) override;
+        void process(label_id_t label_id, Eigen::Ref<DenseRealVector> weight_vector, solvers::MinimizationResult& result) override;
     private:
         std::vector<std::unique_ptr<PostProcessor>> m_Children;
     };
@@ -20,7 +21,7 @@ namespace postproc {
     }
 
     void CombinePostProcessor::process(label_id_t label_id,
-                                       DenseRealVector& weight_vector,
+                                       Eigen::Ref<DenseRealVector> weight_vector,
                                        solvers::MinimizationResult& result) {
         for(auto& child : m_Children) {
             child->process(label_id, weight_vector, result);
@@ -50,6 +51,6 @@ namespace postproc {
     };
 }
 
-std::shared_ptr<postproc::PostProcessFactory> postproc::create_combined(std::vector<std::shared_ptr<PostProcessFactory>> children) {
+std::shared_ptr<dismec::postproc::PostProcessFactory> dismec::postproc::create_combined(std::vector<std::shared_ptr<PostProcessFactory>> children) {
     return std::make_shared<CombinedFactory>( std::move(children) );
 }

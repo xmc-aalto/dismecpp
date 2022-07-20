@@ -7,6 +7,8 @@
 #include "data.h"
 #include "spdlog/spdlog.h"
 
+using namespace dismec;
+
 std::size_t DatasetBase::num_positives(label_id_t id) const {
     return (get_labels(id)->array() == 1.0).count();
 }

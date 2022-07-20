@@ -9,9 +9,9 @@
 #include "solver/minimizer.h"
 #include "solver/cg.h"
 #include "solver/line_search.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 
-namespace solvers
+namespace dismec::solvers
 {
     class NewtonWithLineSearch : public Minimizer {
     public:

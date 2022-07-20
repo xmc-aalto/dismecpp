@@ -8,7 +8,7 @@
 
 #include "model/model.h"
 
-namespace model {
+namespace dismec::model {
 
     /*!
      * \brief Implementation of the \ref Model class that stores the weights as a single, dense matrix.

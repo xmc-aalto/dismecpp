@@ -7,14 +7,17 @@
 #include "io/common.h"
 #include <fstream>
 
-void io::prediction::save_sparse_predictions(path target_file,
-                                             const PredictionMatrix& values,
-                                             const IndexMatrix& indices) {
+using namespace dismec;
+namespace prediction = dismec::io::prediction;
+
+void prediction::save_sparse_predictions(path target_file,
+                                         const PredictionMatrix& values,
+                                         const IndexMatrix& indices) {
     std::fstream file(target_file, std::fstream::out);
     save_sparse_predictions(file, values, indices);
 }
 
-void io::prediction::save_sparse_predictions(std::ostream& target,
+void prediction::save_sparse_predictions(std::ostream& target,
                              const PredictionMatrix& values,
                              const IndexMatrix& indices) {
     if(values.rows() != indices.rows()) {
@@ -39,7 +42,7 @@ void io::prediction::save_sparse_predictions(std::ostream& target,
     }
 }
 
-std::pair<IndexMatrix, PredictionMatrix> io::prediction::read_sparse_prediction(std::istream& source) {
+std::pair<IndexMatrix, PredictionMatrix> prediction::read_sparse_prediction(std::istream& source) {
     std::string line_buffer;
     long rows, cols;
     {
@@ -91,17 +94,17 @@ std::pair<IndexMatrix, PredictionMatrix> io::prediction::read_sparse_prediction(
     return {std::move(indices), std::move(values)};
 }
 
-std::pair<IndexMatrix, PredictionMatrix> io::prediction::read_sparse_prediction(path source) {
+std::pair<IndexMatrix, PredictionMatrix> prediction::read_sparse_prediction(path source) {
     std::fstream stream(source, std::fstream::in);
     return read_sparse_prediction(stream);
 }
 
-void io::prediction::save_dense_predictions(path target, const PredictionMatrix & values) {
+void prediction::save_dense_predictions(path target, const PredictionMatrix & values) {
     std::fstream file(target, std::fstream::out);
     save_dense_predictions(file, values);
 }
 
-void io::prediction::save_dense_predictions(std::ostream& target, const PredictionMatrix& values) {
+void prediction::save_dense_predictions(std::ostream& target, const PredictionMatrix& values) {
     target << values.rows() << " " << values.cols() << "\n";
     for(int row = 0; row < values.rows(); ++row) {
         io::write_vector_as_text(target, values.row(row)) << '\n';
@@ -129,13 +132,13 @@ TEST_CASE("save_load_sparse_predictions")
 
     SUBCASE("save") {
         std::stringstream target;
-        io::prediction::save_sparse_predictions(target, values, indices);
+        prediction::save_sparse_predictions(target, values, indices);
         CHECK(target.str() == as_text);
     }
 
     SUBCASE("load") {
         std::stringstream source(as_text);
-        auto loaded = io::prediction::read_sparse_prediction(source);
+        auto loaded = prediction::read_sparse_prediction(source);
         CHECK(loaded.first == indices);
         CHECK(loaded.second == values);
     }
@@ -143,7 +146,7 @@ TEST_CASE("save_load_sparse_predictions")
         std::stringstream source("2  3\t\n"
                                  "0:0.5 2: 1.5  1:0.9\n"
                                  "1:1.5\t31:0.9 2:0.4");
-        auto loaded = io::prediction::read_sparse_prediction(source);
+        auto loaded = prediction::read_sparse_prediction(source);
         CHECK(loaded.first == indices);
         CHECK(loaded.second == values);
     }
@@ -158,11 +161,11 @@ TEST_CASE("save_sparse_predictions checking") {
     std::stringstream target;
     SUBCASE("mismatched rows") {
         PredictionMatrix values(3, 3);
-        CHECK_THROWS(io::prediction::save_sparse_predictions(target, values, indices));
+        CHECK_THROWS(prediction::save_sparse_predictions(target, values, indices));
     }
     SUBCASE("mismatched columns") {
         PredictionMatrix values(2, 2);
-        CHECK_THROWS(io::prediction::save_sparse_predictions(target, values, indices));
+        CHECK_THROWS(prediction::save_sparse_predictions(target, values, indices));
     }
 }
 
@@ -173,27 +176,27 @@ TEST_CASE("read_sparse_prediction check") {
     std::stringstream source;
     SUBCASE("missing header") {
         source.str("1:2.0 4:1.0");
-        CHECK_THROWS(io::prediction::read_sparse_prediction(source));
+        CHECK_THROWS(prediction::read_sparse_prediction(source));
     }
     SUBCASE("invalid rows") {
         source.str("-5 4\n");
-        CHECK_THROWS(io::prediction::read_sparse_prediction(source));
+        CHECK_THROWS(prediction::read_sparse_prediction(source));
     }
     SUBCASE("invalid columns") {
         source.str("2 0\n");
-        CHECK_THROWS(io::prediction::read_sparse_prediction(source));
+        CHECK_THROWS(prediction::read_sparse_prediction(source));
     }
     SUBCASE("too many columns") {
         source.str("1 2\n1:5.0 2:0.5 3:5.2");
-        CHECK_THROWS(io::prediction::read_sparse_prediction(source));
+        CHECK_THROWS(prediction::read_sparse_prediction(source));
     }
     SUBCASE("too few columns") {
         source.str("1 2\n1:5.0");
-        CHECK_THROWS(io::prediction::read_sparse_prediction(source));
+        CHECK_THROWS(prediction::read_sparse_prediction(source));
     }
     SUBCASE("too few rows") {
         source.str("2 2\n1:5.0 2:0.5");
-        CHECK_THROWS(io::prediction::read_sparse_prediction(source));
+        CHECK_THROWS(prediction::read_sparse_prediction(source));
     }
     // too many rows is not really an error that we can diagnose at this point.
     // if we are reading a file, we know it is wrong, but when reading from a
@@ -217,6 +220,6 @@ TEST_CASE("save_dense_predictions")
             "1.5 0.9 0.4\n";
 
     std::stringstream target;
-    io::prediction::save_dense_predictions(target, values);
+    prediction::save_dense_predictions(target, values);
     CHECK(target.str() == as_text);
 }

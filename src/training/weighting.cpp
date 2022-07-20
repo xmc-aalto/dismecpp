@@ -9,6 +9,8 @@
 #include "spdlog/spdlog.h"
 #include "data/data.h"
 
+using namespace dismec;
+
 PropensityModel::PropensityModel(const DatasetBase* data, double a, double b) :
     m_A(a), m_B(b), m_Data(data)
 {

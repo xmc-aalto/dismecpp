@@ -7,7 +7,8 @@
 #include "spdlog/fmt/fmt.h"
 #include "utils/eigen_generic.h"
 
-using namespace model;
+using namespace dismec;
+using namespace dismec::model;
 
 Model::Model(PartialModelSpec spec) :
     m_LabelsBegin(spec.first_label), m_LabelsEnd(spec.first_label + spec.label_count), m_NumLabels(spec.total_labels)

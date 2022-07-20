@@ -8,9 +8,9 @@
 
 #include "matrix_types.h"
 #include <functional>
-#include "hyperparams.h"
+#include "utils/hyperparams.h"
 
-namespace solvers {
+namespace dismec::solvers {
 
     /*! \class CGMinimizer
      *  \brief Approximately solve a linear equation `Ax + b = 0`.

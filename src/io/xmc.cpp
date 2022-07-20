@@ -11,6 +11,8 @@
 #include "spdlog/fmt/fmt.h"
 #include "spdlog/stopwatch.h"
 
+using namespace dismec;
+
 namespace {
     /// \brief Collects the data from the header of an xmc file \ref xmc-data.
     struct XMCHeader {
@@ -26,7 +28,7 @@ namespace {
      * \throws If any of the parsed numbers is non-positive, or if the parsing itself fails.
      * \todo throw if there is more data on the line.
      */
-    XMCHeader parse_header(const std::string& content) {
+    XMCHeader parse_xmc_header(const std::string& content) {
         std::stringstream parse_header{content};
         long NumExamples;
         long NumFeatures;
@@ -68,7 +70,7 @@ namespace {
         \param source The stream from which to read. Should not contain the header.
         \param num_examples Number of examples to expect. This is used to reserve space in the result vector. Optional,
         but if not given may result in additional allocations being performed and/or too much memory being used.
-        \todo also count number of labels based on `,`, then we can reseve also the label vector
+        \todo also count number of labels based on `,`, then we can reserve also the label vector
     */
     std::vector<long> count_features_per_example(std::istream& source, std::size_t num_examples = 100'000)
     {
@@ -189,7 +191,7 @@ namespace {
                     label_buffer[adjusted_label].push_back(example);
                 });
 
-                io::parse_sparse_vector_from_text(label_end, [&](long index, double value) {
+                dismec::io::parse_sparse_vector_from_text(label_end, [&](long index, double value) {
                     long adjusted_index = index - IndexOffset;
                     if (adjusted_index >= num_features || adjusted_index < 0) {
                         THROW_ERROR("Encountered feature index {:5} with value {}. Number of features "
@@ -200,7 +202,7 @@ namespace {
                         if(std::isnan(value)) {
                             THROW_ERROR("Encountered feature index {:5} with value {}.", index, value);
                         }
-                        feature_buffer.insert(example, adjusted_index) = value;
+                        feature_buffer.insert(example, adjusted_index) = static_cast<real_t>(value);
                     }
                 });
             } catch (std::runtime_error& e) {
@@ -211,7 +213,7 @@ namespace {
     }
 }
 
-MultiLabelData io::read_xmc_dataset(const std::filesystem::path& source_path, IndexMode mode) {
+dismec::MultiLabelData dismec::io::read_xmc_dataset(const std::filesystem::path& source_path, IndexMode mode) {
     std::fstream source(source_path, std::fstream::in);
     if (!source.is_open()) {
         throw std::runtime_error(fmt::format("Cannot open input file {}", source_path.c_str()));
@@ -220,13 +222,13 @@ MultiLabelData io::read_xmc_dataset(const std::filesystem::path& source_path, In
     return read_xmc_dataset(source, source_path.c_str(), mode);
 }
 
-MultiLabelData io::read_xmc_dataset(std::istream& source, std::string_view name, IndexMode mode) {
+dismec::MultiLabelData dismec::io::read_xmc_dataset(std::istream& source, std::string_view name, IndexMode mode) {
     // for now, do what the old code does: iterate twice, once to count and once to read
     std::string line_buffer;
     spdlog::stopwatch timer;
 
     std::getline(source, line_buffer);
-    XMCHeader header = parse_header(line_buffer);
+    XMCHeader header = parse_xmc_header(line_buffer);
 
     spdlog::info("Loading dataset '{}' with {} examples, {} features and {} labels.",
                  name, header.NumExamples, header.NumFeatures, header.NumLabels);
@@ -267,7 +269,7 @@ MultiLabelData io::read_xmc_dataset(std::istream& source, std::string_view name,
 
     spdlog::info("Finished loading dataset '{}' in {:.3}s.", name, timer);
 
-    return MultiLabelData(x.markAsRValue(), std::move(label_data));
+    return {x.markAsRValue(), std::move(label_data)};
 }
 
 namespace {
@@ -288,11 +290,12 @@ namespace {
     }
 }
 
-void io::save_xmc_dataset(std::ostream& target, const MultiLabelData& data) {
+void dismec::io::save_xmc_dataset(std::ostream& target, const MultiLabelData& data) {
     //! \todo insert proper checks that data is sparse
     target << data.num_examples() << " " << data.num_features() << " " << data.num_labels() << "\n";
     // for efficient saving, we need the labels in sparse row format, but for training we have them
     // in sparse column format.
+    /// TODO handle this in a CSR format instead of LoL
     std::vector<std::vector<int>> all_labels(data.num_examples());
     for(label_id_t label{0}; label.to_index() < data.num_labels(); ++label) {
         for(auto& instance : data.get_label_instances(label)) {
@@ -316,13 +319,13 @@ void io::save_xmc_dataset(std::ostream& target, const MultiLabelData& data) {
     }
 }
 
-void io::save_xmc_dataset(std::filesystem::path target_path, const MultiLabelData& data, int precision) {
+void dismec::io::save_xmc_dataset(const std::filesystem::path& target_path, const MultiLabelData& data, int precision) {
     std::fstream target(target_path, std::fstream::out);
     if (!target.is_open()) {
         throw std::runtime_error(fmt::format("Cannot open output file {}", target_path.c_str()));
     }
 
-    target.setf(std::fstream::fmtflags::_S_fixed, target.floatfield);
+    target.setf(std::fstream::fmtflags::_S_fixed, std::fstream::floatfield);
     target.precision(precision);
     save_xmc_dataset(target, data);
 }
@@ -341,7 +344,7 @@ TEST_CASE("parse valid header") {
     SUBCASE("tab separated") {
         input = "12\t54 \t 43 ";
     }
-    auto valid = parse_header(input);
+    auto valid = parse_xmc_header(input);
     CHECK(valid.NumExamples == 12);
     CHECK(valid.NumFeatures == 54);
     CHECK(valid.NumLabels == 43);
@@ -352,16 +355,16 @@ TEST_CASE("parse valid header") {
 /// data does not match, of if any of the supplied counts are non-positive.
 TEST_CASE("parse invalid header") {
     // check number of arguments
-    CHECK_THROWS(parse_header("6 1"));
-    CHECK_THROWS(parse_header("6 1 5 1"));
+    CHECK_THROWS(parse_xmc_header("6 1"));
+    CHECK_THROWS(parse_xmc_header("6 1 5 1"));
 
     // we also know that something is wrong if any of the counts are <= 0
-    CHECK_THROWS(parse_header("0 5 5"));
-    CHECK_THROWS(parse_header("5 0 5"));
-    CHECK_THROWS(parse_header("5 5 0"));
-    CHECK_THROWS(parse_header("-1 5 5"));
-    CHECK_THROWS(parse_header("5 -1 5"));
-    CHECK_THROWS(parse_header("5 5 -1"));
+    CHECK_THROWS(parse_xmc_header("0 5 5"));
+    CHECK_THROWS(parse_xmc_header("5 0 5"));
+    CHECK_THROWS(parse_xmc_header("5 5 0"));
+    CHECK_THROWS(parse_xmc_header("-1 5 5"));
+    CHECK_THROWS(parse_xmc_header("5 -1 5"));
+    CHECK_THROWS(parse_xmc_header("5 5 -1"));
 }
 
 /*!
@@ -437,7 +440,7 @@ TEST_CASE("parse labels errors") {
  * \todo we should also check that the returned pointer is valid.
  */
 TEST_CASE("parse labels") {
-    auto run_test = [&](std::string source, std::vector<long> expect){
+    auto run_test = [&](std::string source, const std::vector<long>& expect){
         int pos = 0;
         CAPTURE(source);
         try {
@@ -491,70 +494,70 @@ TEST_CASE("read into buffers bounds checks") {
     SUBCASE("invalid feature") {
         source.str("1 2:0.5 3:0.5");
         SUBCASE("zero-base") {
-            CHECK_THROWS(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_NOTHROW(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_NOTHROW(read_into_buffers<1>(source, *x, labels));
         }
     }
 
     SUBCASE("negative feature") {
         source.str("1 -1:0.5 1:0.5");
         SUBCASE("zero-base") {
-            CHECK_THROWS(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_THROWS(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<1>(source, *x, labels));
         }
     }
 
     SUBCASE("invalid label") {
         source.str("2 2:0.5");
         SUBCASE("zero-base") {
-            CHECK_THROWS(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_NOTHROW(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_NOTHROW(read_into_buffers<1>(source, *x, labels));
         }
     }
 
     SUBCASE("negative  label") {
         source.str("-1 2:0.5");
         SUBCASE("zero-base") {
-            CHECK_THROWS(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_THROWS(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<1>(source, *x, labels));
         }
     }
 
     SUBCASE("invalid example") {
         source.str("0 0:0.5\n0 0:0.5\n0 0:0.5");
         SUBCASE("zero-base") {
-            CHECK_THROWS(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_THROWS(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<1>(source, *x, labels));
         }
     }
 
     SUBCASE("invalid zero label in one-based indexing") {
         source.str("0 2:0.5 2:0.5");
         SUBCASE("zero-base") {
-            CHECK_NOTHROW(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_NOTHROW(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_THROWS(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<1>(source, *x, labels));
         }
     }
 
     SUBCASE("invalid zero feature in one-based indexing") {
         source.str("1 0:0.5 2:0.5");
         SUBCASE("zero-base") {
-            CHECK_NOTHROW(read_into_buffers<0>(source, *x, labels, 1));
+            CHECK_NOTHROW(read_into_buffers<0>(source, *x, labels));
         }
         SUBCASE("one-base") {
-            CHECK_THROWS(read_into_buffers<1>(source, *x, labels, 1));
+            CHECK_THROWS(read_into_buffers<1>(source, *x, labels));
         }
     }
 }

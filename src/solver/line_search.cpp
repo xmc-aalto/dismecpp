@@ -5,10 +5,10 @@
 
 #include "line_search.h"
 
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "spdlog/spdlog.h"
 
-using namespace solvers;
+using namespace dismec::solvers;
 
 BacktrackingLineSearch::BacktrackingLineSearch() {
     declare_hyper_parameter("step-size", &BacktrackingLineSearch::get_initial_step, &BacktrackingLineSearch::set_initial_step);

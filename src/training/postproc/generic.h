@@ -8,7 +8,7 @@
 
 #include "training/postproc.h"
 
-namespace postproc {
+namespace dismec::postproc {
     template<class T, class... Args>
     class GenericPostProcFactory : public PostProcessFactory {
     public:

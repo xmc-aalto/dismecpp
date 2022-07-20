@@ -8,7 +8,7 @@
 
 #include "model.h"
 
-namespace model {
+namespace dismec::model {
     class SparseModel : public Model {
     public:
         SparseModel(long num_features, long num_labels);

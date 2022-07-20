@@ -12,7 +12,7 @@
 #include "matrix_types.h"
 #include "data/types.h"
 
-namespace model
+namespace dismec::model
 {
     /*!
      * \brief Specifies how to interpret a weight matrix for a partial model.

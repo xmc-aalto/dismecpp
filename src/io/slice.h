@@ -8,16 +8,15 @@
 
 #include <filesystem>
 #include <iosfwd>
+#include "fwd.h"
 
-
-class MultiLabelData;
 
 /*! \page slice-data Slice data format
  * In this data format the input dataset is given in two files: One file with a (dense) representation of features
  * and one file with the (sparse) labels.
 */
 
-namespace io {
+namespace dismec::io {
     /*!
      * \brief reads a dataset given in slice format.
      * \details For a description of the data format, see \ref slice-data

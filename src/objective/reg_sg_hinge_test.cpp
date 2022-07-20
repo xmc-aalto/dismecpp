@@ -9,8 +9,9 @@
 #include "utils/test_utils.h"
 #include "regularizers_imp.h"
 
-using namespace l2_reg_sq_hinge_detail;
-using objective::Regularized_SquaredHingeSVC;
+using namespace dismec;
+using namespace dismec::l2_reg_sq_hinge_detail;
+using dismec::objective::Regularized_SquaredHingeSVC;
 
 TEST_CASE("hessian_times_direction_sum") {
     int num_ftr = 1000;

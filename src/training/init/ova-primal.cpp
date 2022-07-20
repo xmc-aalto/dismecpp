@@ -10,9 +10,9 @@
 
 #include <spdlog/spdlog.h>
 
-using namespace init;
+using namespace dismec::init;
 
-std::shared_ptr<WeightInitializationStrategy> init::create_ova_primal_initializer(
+std::shared_ptr<WeightInitializationStrategy> dismec::init::create_ova_primal_initializer(
         const std::shared_ptr<DatasetBase>& data, RegularizerSpec regularizer, LossType loss) {
     auto minimizer = std::make_unique<solvers::NewtonWithLineSearch>(data->num_features());
     auto reg = std::visit([](auto&& config){ return make_regularizer(config); }, regularizer);

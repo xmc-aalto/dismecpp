@@ -16,4 +16,14 @@
     throw exception_type( fmt::format(__VA_ARGS__) ); \
 }();
 
+/// This macro adds a check that two values are equal. This check is added both in debug and release mode. If
+/// the check fails, a std::invalid_argument exception is raised with the given message. The message should contain
+/// two placeholders `{}` which will be filled with the two values.
+#define ALWAYS_ASSERT_EQUAL(x, y, msg) \
+{                                      \
+auto v1=(x);                           \
+auto v2=(y);                           \
+if(v1 != v2) {                         \
+    THROW_EXCEPTION(std::invalid_argument, msg, v1, v2); \
+}}
 #endif //DISMEC_THROW_ERROR_H

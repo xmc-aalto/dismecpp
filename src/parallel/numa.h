@@ -12,7 +12,7 @@
 #include <any>
 #include "spdlog/spdlog.h"
 
-namespace parallel {
+namespace dismec::parallel {
 
     /// Pint the calling thread to the NUMA node on which `data` resides.
     void pin_to_data(const void* data);

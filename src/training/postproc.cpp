@@ -4,26 +4,27 @@
 // SPDX-License-Identifier: MIT
 
 #include "postproc.h"
+#include "data/types.h"
 #include "objective/objective.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "spdlog/spdlog.h"
 #include "postproc/generic.h"
 
-namespace postproc {
+namespace dismec::postproc {
     struct IdentityPostProc : public PostProcessor {
         explicit IdentityPostProc(const std::shared_ptr<objective::Objective>&) {}
-        void process(label_id_t label_id, DenseRealVector& weight_vector, solvers::MinimizationResult& result) override {};
+        void process(label_id_t label_id, Eigen::Ref<DenseRealVector> weight_vector, solvers::MinimizationResult& result) override {};
     };
 
     class CullingPostProcessor : public PostProcessor {
     public:
         CullingPostProcessor(const std::shared_ptr<objective::Objective>&, real_t eps);
-        void process(label_id_t label_id, DenseRealVector& weight_vector, solvers::MinimizationResult& result) override;
+        void process(label_id_t label_id, Eigen::Ref<DenseRealVector> weight_vector, solvers::MinimizationResult& result) override;
     private:
         real_t m_Epsilon;
     };
 
-    void CullingPostProcessor::process(label_id_t label_id, DenseRealVector& weight_vector,
+    void CullingPostProcessor::process(label_id_t label_id, Eigen::Ref<DenseRealVector> weight_vector,
                                        solvers::MinimizationResult& result) {
         for(long i = 0; i < weight_vector.size(); ++i) {
             real_t& w = weight_vector.coeffRef(i);
@@ -40,13 +41,13 @@ namespace postproc {
     }
 }
 
-using postproc::PostProcessFactory;
+using dismec::postproc::PostProcessFactory;
 
-std::shared_ptr<PostProcessFactory> postproc::create_identity() {
+std::shared_ptr<PostProcessFactory> dismec::postproc::create_identity() {
     return std::make_shared<GenericPostProcFactory<IdentityPostProc>>();
 }
 
-std::shared_ptr<PostProcessFactory> postproc::create_culling(real_t eps) {
+std::shared_ptr<PostProcessFactory> dismec::postproc::create_culling(real_t eps) {
     return std::make_shared<GenericPostProcFactory<CullingPostProcessor, real_t>>( eps );
 }
 

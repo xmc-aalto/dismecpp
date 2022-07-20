@@ -7,9 +7,9 @@
 #include "data/types.h"
 #include "model/model.h"
 
-using namespace init;
+using namespace dismec::init;
 
-namespace init {
+namespace dismec::init {
     class PreTrainedInitializer : public WeightsInitializer {
     public:
         explicit PreTrainedInitializer(std::shared_ptr<const model::Model> pre_trained) :
@@ -43,6 +43,6 @@ std::unique_ptr<WeightsInitializer> PreTrainedInitializationStrategy::make_initi
     return std::make_unique<PreTrainedInitializer>(m_PreTrained);
 }
 
-std::shared_ptr<WeightInitializationStrategy> init::create_pretrained_initializer(std::shared_ptr<model::Model> model) {
+std::shared_ptr<WeightInitializationStrategy> dismec::init::create_pretrained_initializer(std::shared_ptr<model::Model> model) {
     return std::make_shared<PreTrainedInitializationStrategy>(std::move(model));
 }

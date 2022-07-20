@@ -9,7 +9,7 @@
 #include <chrono>
 #include "stat_id.h"
 
-namespace stats {
+namespace dismec::stats {
     class StatisticsCollection;
 
     class ScopeTimer {

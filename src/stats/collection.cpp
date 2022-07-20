@@ -6,7 +6,7 @@
 #include "collection.h"
 #include "spdlog/spdlog.h"
 
-using namespace stats;
+using namespace dismec::stats;
 
 void StatisticsCollection::enable(stat_id_t stat) {
     if(!m_Statistics.at(stat.to_index()))
@@ -19,12 +19,12 @@ void StatisticsCollection::disable(stats::stat_id_t stat) {
 }
 
 namespace {
-    stats::stat_id_t str_to_id(const std::string& str, const std::vector<StatisticMetaData>& names) {
+    stat_id_t str_to_id(const std::string& str, const std::vector<StatisticMetaData>& names) {
         auto dist = std::distance(begin(names), std::find_if(begin(names), end(names), [&](auto&& v){ return v.Name == str; }));
         if(dist < 0 || dist >= names.size()) {
             throw std::invalid_argument("No statistics of the given name has been declared.");
         }
-        return stats::stat_id_t{dist};
+        return stat_id_t{dist};
     }
 }
 
@@ -71,7 +71,7 @@ void StatisticsCollection::register_stat(const std::string& name, std::unique_pt
     }
 }
 
-const stats::Statistics& StatisticsCollection::get_stat(const std::string& name) const {
+const Statistics& StatisticsCollection::get_stat(const std::string& name) const {
     auto id = str_to_id(name, m_MetaData);
     auto ptr = m_Statistics.at(id.to_index()).get();
     if(!ptr)

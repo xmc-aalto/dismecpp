@@ -9,7 +9,7 @@
 #include <filesystem>
 #include "matrix_types.h"
 
-namespace io::prediction
+namespace dismec::io::prediction
 {
     using std::filesystem::path;
     /*!

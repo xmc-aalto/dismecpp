@@ -7,6 +7,8 @@
 #define DISMEC_FAST_SPARSE_ITER_H
 
 
+namespace dismec
+{
 /*!
  * \brief This is an almost verbatim copy of the SparseFeatures::InnerIterator provided by Eigen.
  *
@@ -49,30 +51,29 @@ protected:
 
 
 template<typename Scalar, int Options, typename StorageIndex, typename OtherDerived>
-auto fast_dot(const Eigen::SparseMatrix<Scalar, Options, StorageIndex>& first, int row, const Eigen::MatrixBase<OtherDerived>& other) -> Scalar
-{
+auto fast_dot(const Eigen::SparseMatrix<Scalar, Options, StorageIndex>& first, int row, const Eigen::MatrixBase<OtherDerived>& other) -> Scalar {
     auto values = first.valuePtr();
     auto indices = first.innerIndexPtr();
     auto id = first.outerIndexPtr()[row];
-    auto end = first.outerIndexPtr()[row+1];
+    auto end = first.outerIndexPtr()[row + 1];
 
     Scalar a(0);
     Scalar b(0);
     Scalar c(0);
     Scalar d(0);
-    for (; id < end - 4; id += 4)
-    {
+    for (; id < end - 4; id += 4) {
         a += values[id] * other.coeff(indices[id]);
-        b += values[id+1] * other.coeff(indices[id+1]);
-        c += values[id+2] * other.coeff(indices[id+2]);
-        d += values[id+3] * other.coeff(indices[id+3]);
+        b += values[id + 1] * other.coeff(indices[id + 1]);
+        c += values[id + 2] * other.coeff(indices[id + 2]);
+        d += values[id + 3] * other.coeff(indices[id + 3]);
     }
-    Scalar res = (a+b) + (c+d);
-    while(id != end) {
+    Scalar res = (a + b) + (c + d);
+    while (id != end) {
         res += values[id] * other.coeff(indices[id]);
         ++id;
     }
     return res;
-}
+}}
+
 
 #endif //DISMEC_FAST_SPARSE_ITER_H

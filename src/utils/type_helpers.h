@@ -6,8 +6,10 @@
 #ifndef DISMEC_TYPE_HELPERS_H
 #define DISMEC_TYPE_HELPERS_H
 
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
 
-namespace types {
+namespace dismec::types {
     namespace type_helpers {
         template<class T, template<class U> typename V>
         using outer_const = std::conditional_t<std::is_const_v<T>, const V<std::remove_const_t < T>>, V<T>>;

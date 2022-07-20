@@ -15,24 +15,30 @@
 #include <iomanip>
 #include <nlohmann/json.hpp>
 
+using namespace dismec;
+
 TrainingStatsGatherer::TrainingStatsGatherer(std::string source, std::string target_file) :
     m_TargetFile(std::move(target_file)) {
-    std::fstream source_stream(source, std::fstream::in);
-    m_Config = std::make_unique<nlohmann::json>(nlohmann::json::parse(source_stream));
+    if(source.empty()) {
+        m_Config = std::make_unique<nlohmann::json>();
+    } else {
+        std::fstream source_stream(source, std::fstream::in);
+        m_Config = std::make_unique<nlohmann::json>(nlohmann::json::parse(source_stream));
+    }
 }
 
-void TrainingStatsGatherer::setup_minimizer(parallel::thread_id_t thread, stats::Tracked& minimizer) {
+void TrainingStatsGatherer::setup_minimizer(thread_id_t thread, stats::Tracked& minimizer) {
     add_accu("minimizer", thread, minimizer.get_stats());
 }
 
-void TrainingStatsGatherer::setup_initializer(parallel::thread_id_t thread, stats::Tracked& initializer) {
+void TrainingStatsGatherer::setup_initializer(thread_id_t thread, stats::Tracked& initializer) {
     add_accu("init", thread, initializer.get_stats());
 }
 
-void TrainingStatsGatherer::setup_objective(parallel::thread_id_t thread, stats::Tracked& objective) {
+void TrainingStatsGatherer::setup_objective(thread_id_t thread, stats::Tracked& objective) {
     add_accu("objective", thread,  objective.get_stats());
 }
-void TrainingStatsGatherer::setup_postproc(parallel::thread_id_t thread, stats::Tracked& post) {
+void TrainingStatsGatherer::setup_postproc(thread_id_t thread, stats::Tracked& post) {
     add_accu("post", thread, post.get_stats());
 }
 

@@ -7,9 +7,9 @@
 #define DISMEC_LINE_SEARCH_H
 
 #include <functional>
-#include "hyperparams.h"
+#include "utils/hyperparams.h"
 
-namespace solvers
+namespace dismec::solvers
 {
     /*!
      * \brief Result of a Line Search operation.
