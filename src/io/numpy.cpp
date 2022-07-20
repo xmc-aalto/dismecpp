@@ -6,9 +6,12 @@
 #include "numpy.h"
 #include "io/common.h"
 #include <ostream>
+#include <fstream>
 #include <cstdint>
 #include "spdlog/fmt/fmt.h"
 #include "spdlog/spdlog.h"
+
+using namespace dismec;
 
 namespace {
     constexpr const char MAGIC[] = {'\x93', 'N', 'U', 'M', 'P', 'Y', '\x03', '\x00'};
@@ -54,7 +57,7 @@ const char* data_type_string<TYPE>() {      \
     return STRING;                          \
 }
 
-namespace io {
+namespace dismec::io {
     REGISTER_DTYPE(float, "<f4");
     REGISTER_DTYPE(double, "<f8");
     REGISTER_DTYPE(std::int32_t, "<i4");
@@ -294,6 +297,36 @@ io::NpyHeaderData io::parse_npy_header(std::streambuf& source) {
     }
 
     return parse_description(header_buffer);
+}
+
+namespace {
+    template<class T>
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> load_matrix_from_npy_imp(std::streambuf& source) {
+        auto header = io::parse_npy_header(source);
+        if(header.DataType != io::data_type_string<T>()) {
+            THROW_ERROR("Unsupported data type {}", header.DataType);
+        }
+        if(header.ColumnMajor) {
+            THROW_ERROR("Currently, only row-major npy files can be read");
+        }
+
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> target(header.Rows, header.Cols);
+        io::binary_load(source, target.data(), target.data() + header.Rows * header.Cols);
+        return target;
+    }
+
+}
+
+Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> io::load_matrix_from_npy(std::istream& source) {
+    return load_matrix_from_npy_imp<real_t>(*source.rdbuf());
+}
+
+Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> io::load_matrix_from_npy(const std::string& path) {
+    std::ifstream file(path);
+    if(!file.is_open()) {
+        THROW_ERROR("Could not open file {} for reading.", path)
+    }
+    return load_matrix_from_npy(file);
 }
 
 

@@ -5,7 +5,7 @@
 
 #include "test_utils.h"
 
-SparseFeatures make_uniform_sparse_matrix(int rows, int cols, int nonzeros_per_row) {
+dismec::SparseFeatures dismec::make_uniform_sparse_matrix(int rows, int cols, int nonzeros_per_row) {
     SparseFeatures matrix(rows, cols);
     std::vector<Eigen::Triplet<real_t>> content;
     for(int i = 0; i < rows; ++i) {

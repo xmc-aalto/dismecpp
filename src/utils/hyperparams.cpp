@@ -5,6 +5,8 @@
 
 #include "hyperparams.h"
 
+using namespace dismec;
+
 [[nodiscard]] auto HyperParameterBase::get_hyper_parameter(const std::string& name) const -> hyper_param_t {
     const hyper_param_ptr_t& hp = m_HyperParameters.at(name);
     hyper_param_t result;

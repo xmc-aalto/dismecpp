@@ -9,6 +9,7 @@
 #include <numeric>
 #include <random>
 
+using namespace dismec;
 using json = nlohmann::json;
 
 double obesity(const std::vector<long>& values, int num_samples);

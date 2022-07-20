@@ -8,9 +8,8 @@
 
 #include <filesystem>
 #include <iosfwd>
+#include "fwd.h"
 
-
-class MultiLabelData;
 
 /*! \page xmc-data XMC data format
 This is the data format used e.g. here `http://manikvarma.org/downloads/XC/XMLRepository.html`. It supports multiple
@@ -62,7 +61,7 @@ the feature list has ended (space) or will continue (,), without needing to look
 
 //! io namespace
 //! TODO convert this code to use the faster <charconv> methods once gcc implements them for floats
-namespace io
+namespace dismec::io
 {
     /// Enum to decide whether indices in an xmc file are starting from 0 or from 1.
     enum class IndexMode {
@@ -101,7 +100,7 @@ namespace io
      */
     void save_xmc_dataset(std::ostream& target, const MultiLabelData& data);
 
-    void save_xmc_dataset(std::filesystem::path source, const MultiLabelData& data, int precision=4);
+    void save_xmc_dataset(const std::filesystem::path& target, const MultiLabelData& data, int precision=4);
 }
 
 #endif //DISMEC_XMC_H

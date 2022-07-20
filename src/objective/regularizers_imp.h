@@ -7,7 +7,7 @@
 #define DISMEC_REGULARIZERS_IMP_H
 
 #include "objective.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "pointwise.h"
 
 /*!
@@ -16,7 +16,7 @@
  * since the data is not part of the public interface.
  */
 
-namespace objective {
+namespace dismec::objective {
 
     /*!
      * \brief This class implements a squared norm (L2) regularizer. Thus `f(x) = 0.5 |x|^2`.

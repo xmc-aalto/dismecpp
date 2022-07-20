@@ -6,13 +6,13 @@
 #include "timer.h"
 #include "collection.h"
 
-namespace stats {
-    void ScopeTimer::record_duration() {
-        auto dt = clock_t::now() - m_Start;
-        m_Accu->record(m_Target, std::chrono::duration_cast<std::chrono::microseconds>(dt).count());
-    };
+using dismec::stats::ScopeTimer;
 
-    bool ScopeTimer::is_enabled(const StatisticsCollection* accu, stat_id_t stat) {
-        return accu->is_enabled(stat);
-    }
+void ScopeTimer::record_duration() {
+    auto dt = clock_t::now() - m_Start;
+    m_Accu->record(m_Target, std::chrono::duration_cast<std::chrono::microseconds>(dt).count());
+};
+
+bool ScopeTimer::is_enabled(const StatisticsCollection* accu, stat_id_t stat) {
+    return accu->is_enabled(stat);
 }

@@ -7,16 +7,12 @@
 #define DISMEC_MINIMIZER_H
 
 #include "objective/objective.h"
-#include "hyperparams.h"
+#include "utils/hyperparams.h"
 #include "spdlog/spdlog.h"
 #include "stats/tracked.h"
 #include <chrono>
 
-namespace stats {
-    class StatisticsCollection;
-}
-
-namespace solvers
+namespace dismec::solvers
 {
     enum class MinimizerStatus {
         SUCCESS,            //!< The returned result is a minimum according to the stopping criterion of the algorithm

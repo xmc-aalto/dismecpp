@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <functional>
 
-namespace stats {
+namespace dismec::stats {
 
     class CounterStat final : public StatImplBase<CounterStat> {
     public:

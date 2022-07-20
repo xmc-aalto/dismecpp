@@ -11,6 +11,9 @@
 #include "spdlog/fmt/fmt.h"
 #include "model/model.h"
 
+using namespace dismec;
+using namespace dismec::prediction;
+
 PredictionBase::PredictionBase(const DatasetBase* data,
                                std::shared_ptr<const Model> model) :
         m_Data(data), m_Model(std::move(model)), m_FeatureReplicator(m_Data->get_features())
@@ -53,21 +56,23 @@ void PredictionBase::do_prediction(long begin, long end, thread_id_t thread_id, 
 
 }
 
-PredictionTaskGenerator::PredictionTaskGenerator(const DatasetBase* data, std::shared_ptr<const Model> model) :
+FullPredictionTaskGenerator::FullPredictionTaskGenerator(const DatasetBase* data, std::shared_ptr<const Model> model) :
     PredictionBase(data, std::move(model))
 {
     m_Predictions.resize(data->num_examples(), data->num_labels());
 }
 
-long PredictionTaskGenerator::num_tasks() const
+long FullPredictionTaskGenerator::num_tasks() const
 {
     return m_Data->num_examples();
 }
 
-void PredictionTaskGenerator::run_tasks(long begin, long end, thread_id_t thread_id)
+void FullPredictionTaskGenerator::run_tasks(long begin, long end, thread_id_t thread_id)
 {
     do_prediction(begin, end, thread_id, m_Predictions.middleRows(begin, end));
 }
+
+
 
 TopKPredictionTaskGenerator::TopKPredictionTaskGenerator(const DatasetBase* data, std::shared_ptr<const Model> model, long K) :
         PredictionBase(data, std::move(model)), m_K(K)

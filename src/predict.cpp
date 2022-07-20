@@ -6,6 +6,7 @@
 #include "prediction/metrics.h"
 #include "parallel/runner.h"
 #include "prediction/prediction.h"
+#include "prediction/evaluate.h"
 #include "model/model.h"
 #include "data/data.h"
 #include "data/transform.h"
@@ -14,7 +15,11 @@
 #include "io/xmc.h"
 #include "io/slice.h"
 #include "CLI/CLI.hpp"
+#include "app.h"
 #include "spdlog/spdlog.h"
+#include "nlohmann/json.hpp"
+
+using namespace dismec;
 
 int main(int argc, const char** argv) {
     CLI::App app{"DiSMEC"};
@@ -23,36 +28,20 @@ int main(int argc, const char** argv) {
     std::string model_file;
     std::string result_file;
     std::string labels_file;
+    std::filesystem::path save_metrics;
     int threads = -1;
-    bool one_based_index = false;
-    bool request_normalize_instances = false;
-    DatasetTransform request_transform = DatasetTransform::IDENTITY;
     int top_k = 5;
     double bias;
 
-    app.add_option("problem-file", problem_file, "The file from which the data will be loaded.")->required()->check(CLI::ExistingFile);;
-    app.add_option("model-file", model_file, "The file to which the model will be written.")->required()->check(CLI::ExistingFile);;
+    DataProcessing DataProc;
+    DataProc.setup_data_args(app);
+
+    app.add_option("model-file", model_file, "The file from which the model will be read.")->required()->check(CLI::ExistingFile);;
     app.add_option("result-file", result_file, "The file to which the predictions will be written.")->required();
-    app.add_option("--label-file", labels_file, "For SLICE-type datasets, this specifies where the labels can be found")->check(CLI::ExistingFile);;
     app.add_option("--threads", threads, "Number of threads to use. -1 means auto-detect");
-    app.add_flag("--xmc-one-based-index", one_based_index,
-                 "If this flag is given, then we assume that the input dataset in xmc format"
-                 " has one-based indexing, i.e. the first label and feature are at index 1  (as opposed to the usual 0)");
+    app.add_option("--save-metrics", save_metrics, "Target file in which the metric values are saved");
     app.add_option("--topk, --top-k", top_k, "Only the top k predictions will be saved. "
                                              "Set to -1 if you need all predictions. (Warning: This may result in very large files!)");
-    auto augment_for_bias = app.add_flag("--augment-for-bias", bias,
-                                         "If this flag is given, then all training examples will be augmented with an additional"
-                                         "feature of value 1 or the specified value.")->default_val(1.0);
-    app.add_flag("--normalize-instances", request_normalize_instances,
-                 "If this flag is given, then the feature vectors of all instances are normalized to one.");
-
-    app.add_option("--transform", request_transform, "Apply a transformation to the features of the dataset.")->default_str("identity")
-        ->transform(CLI::Transformer(std::map<std::string, DatasetTransform>{
-            {"identity",     DatasetTransform::IDENTITY},
-            {"log-one-plus", DatasetTransform::LOG_ONE_PLUS},
-            {"one-plus-log", DatasetTransform::ONE_PLUS_LOG}
-        },CLI::ignore_case));
-
     int Verbose;
     app.add_flag("-v", Verbose);
 
@@ -62,31 +51,7 @@ int main(int argc, const char** argv) {
         return app.exit(e);
     }
 
-    spdlog::info("Reading data file from '{}'", problem_file);
-    auto test_set = [&](){
-        if(labels_file.empty()) {
-            return read_xmc_dataset(problem_file,
-                                    one_based_index ? io::IndexMode::ONE_BASED : io::IndexMode::ZERO_BASED);
-        } else {
-            return io::read_slice_dataset(problem_file, labels_file);
-        }
-    }();
-
-    if(request_transform != DatasetTransform::IDENTITY) {
-        if(Verbose >= 0)
-            spdlog::info("Applying data transformation");
-        transform_features(test_set, request_transform);
-    }
-
-    if(request_normalize_instances) {
-        spdlog::info("Normalizing instances.");
-        normalize_instances(test_set);
-    }
-
-    if(!augment_for_bias->empty()) {
-        spdlog::info("Appending bias features with value {}", bias);
-        augment_features_with_bias(test_set, bias);
-    }
+    auto test_set = DataProc.load(Verbose);
 
     parallel::ParallelRunner runner(threads);
     if(Verbose > 0)
@@ -96,33 +61,37 @@ int main(int argc, const char** argv) {
 
     if(top_k > 0) {
         io::PartialModelLoader loader(model_file, io::PartialModelLoader::DEFAULT);
+        if(!loader.validate()) {
+            return EXIT_FAILURE;
+        }
 
-        spdlog::info("Calculating top-{} predictions", top_k);
         int wf_it  = 0;
         if(loader.num_weight_files() == 0) {
             spdlog::error("No weight files");
             return EXIT_FAILURE;
         }
 
+        spdlog::info("Calculating top-{} predictions", top_k);
+
         // generate a transpose of the label matrix
-        std::vector<std::vector<long>> examples_to_labels(test_set.num_examples());
-        for(label_id_t label{0}; label.to_index() < test_set.num_labels(); ++label) {
-            for(auto example : test_set.get_label_instances(label)) {
-                examples_to_labels[example].push_back(label.to_index());
+        std::vector<std::vector<label_id_t>> examples_to_labels(test_set->num_examples());
+        for(label_id_t label{0}; label.to_index() < test_set->num_labels(); ++label) {
+            for(auto example : test_set->get_label_instances(label)) {
+                examples_to_labels[example].push_back(label);
             }
         }
 
         auto initial_model = loader.load_model(wf_it);
         spdlog::info("Using {} representation for model weights", initial_model->has_sparse_weights() ? "sparse" : "dense");
 
-        TopKPredictionTaskGenerator task = TopKPredictionTaskGenerator(&test_set, initial_model, top_k);
+        prediction::TopKPredictionTaskGenerator task(test_set.get(), initial_model, top_k);
         while(true) {
             ++wf_it;
             auto preload_weights = std::async(std::launch::async, [iter=wf_it, &loader]() {
                 if(iter != loader.num_weight_files()) {
                     return loader.load_model(iter);
                 } else {
-                    return std::shared_ptr<Model>{};
+                    return std::shared_ptr<dismec::model::Model>{};
                 }
             });
             auto start_time = std::chrono::steady_clock::now();
@@ -139,31 +108,95 @@ int main(int argc, const char** argv) {
                                                 task.get_top_k_values(),
                                                 task.get_top_k_indices());
 
-        CalculateMetrics metrics{&examples_to_labels, &task.get_top_k_indices()};
-        metrics.add_p_at_k(1);
+        prediction::EvaluateMetrics metrics{&examples_to_labels, &task.get_top_k_indices(), test_set->num_labels()};
+        metrics.add_precision_at_k(1);
+        metrics.add_abandonment_at_k(1);
+        metrics.add_dcg_at_k(1, false);
+        metrics.add_dcg_at_k(1, true);
+
+        auto add_macro_metrics = [&](int k) {
+            auto macro = metrics.add_macro_at_k(k);
+            macro->add_coverage(0.0);
+            macro->add_confusion_matrix();
+            macro->add_precision(prediction::MacroMetricReporter::MACRO);
+            macro->add_precision(prediction::MacroMetricReporter::MICRO);
+            macro->add_recall(prediction::MacroMetricReporter::MACRO);
+            macro->add_recall(prediction::MacroMetricReporter::MICRO);
+            macro->add_f_measure(prediction::MacroMetricReporter::MACRO);
+            macro->add_f_measure(prediction::MacroMetricReporter::MICRO);
+            macro->add_accuracy(prediction::MacroMetricReporter::MICRO);
+            macro->add_accuracy(prediction::MacroMetricReporter::MACRO);
+            macro->add_balanced_accuracy(prediction::MacroMetricReporter::MICRO);
+            macro->add_balanced_accuracy(prediction::MacroMetricReporter::MACRO);
+            macro->add_specificity(prediction::MacroMetricReporter::MICRO);
+            macro->add_specificity(prediction::MacroMetricReporter::MACRO);
+            macro->add_informedness(prediction::MacroMetricReporter::MICRO);
+            macro->add_informedness(prediction::MacroMetricReporter::MACRO);
+            macro->add_markedness(prediction::MacroMetricReporter::MICRO);
+            macro->add_markedness(prediction::MacroMetricReporter::MACRO);
+            macro->add_fowlkes_mallows(prediction::MacroMetricReporter::MICRO);
+            macro->add_fowlkes_mallows(prediction::MacroMetricReporter::MACRO);
+            macro->add_negative_predictive_value(prediction::MacroMetricReporter::MICRO);
+            macro->add_negative_predictive_value(prediction::MacroMetricReporter::MACRO);
+            macro->add_matthews(prediction::MacroMetricReporter::MICRO);
+            macro->add_matthews(prediction::MacroMetricReporter::MACRO);
+            macro->add_positive_likelihood_ratio(prediction::MacroMetricReporter::MICRO);
+            macro->add_positive_likelihood_ratio(prediction::MacroMetricReporter::MACRO);
+            macro->add_negative_likelihood_ratio(prediction::MacroMetricReporter::MICRO);
+            macro->add_negative_likelihood_ratio(prediction::MacroMetricReporter::MACRO);
+            macro->add_diagnostic_odds_ratio(prediction::MacroMetricReporter::MICRO);
+            macro->add_diagnostic_odds_ratio(prediction::MacroMetricReporter::MACRO);
+            return macro;
+        };
+        add_macro_metrics(1);
+
         if(top_k >= 3) {
-            metrics.add_p_at_k(3);
+            metrics.add_precision_at_k(3);
+            metrics.add_abandonment_at_k(3);
+            metrics.add_dcg_at_k(3, false);
+            metrics.add_dcg_at_k(3, true);
+            add_macro_metrics(3);
         }
         if(top_k >= 5) {
-            metrics.add_p_at_k(5);
+            metrics.add_precision_at_k(5);
+            metrics.add_abandonment_at_k(5);
+            metrics.add_dcg_at_k(5, false);
+            metrics.add_dcg_at_k(5, true);
+            add_macro_metrics(5);
         }
+
         spdlog::info("Calculating metrics");
         runner.set_chunk_size(4096);
-        runner.run(metrics);
-        for(auto& result : metrics.get_metrics() ) {
-            spdlog::info("{} = {:.3}", result.first, result.second);
+        auto result_info = runner.run(metrics);
+        spdlog::info("Calculated metrics in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(result_info.Duration).count());
+
+        // sort thew results and present them
+        std::vector<std::pair<std::string, double>> results =metrics.get_metrics();
+        std::sort(results.begin(), results.end());
+
+        for(const auto& [name, value] : results ) {
+            std::cout << fmt::format("{:15} = {:.4}", name, value) << "\n";
+        }
+
+        if(!save_metrics.empty()) {
+            nlohmann::json data;
+            for(const auto& [name, value] : results ) {
+                data[name] = value;
+            }
+            std::ofstream file(save_metrics);
+            file << std::setw(4) << data;
         }
 
         auto& cm = task.get_confusion_matrix();
-        std::int64_t tp = cm[TopKPredictionTaskGenerator::TRUE_POSITIVES];
-        std::int64_t fp = cm[TopKPredictionTaskGenerator::FALSE_POSITIVES];
-        std::int64_t tn = cm[TopKPredictionTaskGenerator::TRUE_NEGATIVES];
-        std::int64_t fn = cm[TopKPredictionTaskGenerator::FALSE_NEGATIVES];
+        std::int64_t tp = cm[prediction::TopKPredictionTaskGenerator::TRUE_POSITIVES];
+        std::int64_t fp = cm[prediction::TopKPredictionTaskGenerator::FALSE_POSITIVES];
+        std::int64_t tn = cm[prediction::TopKPredictionTaskGenerator::TRUE_NEGATIVES];
+        std::int64_t fn = cm[prediction::TopKPredictionTaskGenerator::FALSE_NEGATIVES];
         std::int64_t total = tp + fp + tn + fn;
 
-        spdlog::info("Confusion matrix is: \n"
+        std::cout << fmt::format("Confusion matrix is: \n"
                      "TP: {:15L}   FP: {:15L}\n"
-                     "FN: {:15L}   TN: {:15L}", tp, fp, fn, tn);
+                     "FN: {:15L}   TN: {:15L}\n", tp, fp, fn, tn);
 
         // calculates a percentage with decimals for extremely large integers.
         // we do the division still as integers, with two additional digits,
@@ -173,17 +206,18 @@ int main(int argc, const char** argv) {
             return double(base_result) / 100.0;
         };
 
-        spdlog::info("Accuracy:  {:.3}%", percentage(tp + tn,  total));
-        spdlog::info("Precision: {:.3}%", percentage(tp, tp + fp));
-        spdlog::info("Recall:    {:.3}%", percentage(tp, tp + fn));
+        std::cout << fmt::format("Accuracy:     {:.3}%\n", percentage(tp + tn,  total));
+        std::cout << fmt::format("Precision:    {:.3}%\n", percentage(tp, tp + fp));
+        std::cout << fmt::format("Recall:       {:.3}%\n", percentage(tp, tp + fn));
+        std::cout << fmt::format("F1:           {:.3}%\n", percentage(tp, tp + (fp + fn) / 2));
 
     } else {
         spdlog::info("Reading model file from '{}'", model_file);
         auto model = io::load_model(model_file);
 
         spdlog::info("Calculating full predictions");
-        PredictionTaskGenerator task(&test_set, model);
-        runner.run(task);
+        prediction::FullPredictionTaskGenerator task(test_set.get(), model);
+        auto result = runner.run(task);
         auto &predictions = task.get_predictions();
     }
 }

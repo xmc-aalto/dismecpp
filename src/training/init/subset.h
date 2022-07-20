@@ -8,7 +8,7 @@
 
 #include "training/initializer.h"
 
-namespace init {
+namespace dismec::init {
     class SubsetFeatureMeanInitializer : public WeightsInitializer {
     public:
         SubsetFeatureMeanInitializer(std::shared_ptr<const DatasetBase> data,

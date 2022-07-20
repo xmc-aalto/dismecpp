@@ -8,10 +8,10 @@
 
 #include "objective.h"
 #include "matrix_types.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "linear.h"
 
-namespace objective {
+namespace dismec::objective {
 
     /*! Objective for regularized Support Vector classification
      * with Squared Hinge loss. This is for binary labels, multilabel

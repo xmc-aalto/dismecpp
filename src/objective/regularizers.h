@@ -10,7 +10,7 @@
 
 using real_t = float;
 
-namespace objective {
+namespace dismec::objective {
     class Objective;
     struct SquaredNormConfig { real_t Strength; bool IgnoreBias; };
     struct HuberConfig { real_t Strength; real_t Epsilon; bool IgnoreBias; };

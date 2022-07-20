@@ -13,7 +13,10 @@
 #include "model/sparse.h"
 #include "data/data.h"
 #include "initializer.h"
+#include "weighting.h"
 #include "postproc.h"
+
+using namespace dismec;
 
 /*
 std::unique_ptr<objective::Objective> make_regularizer(RegularizerSpec spec) {
@@ -35,7 +38,7 @@ std::unique_ptr<objective::Objective> make_regularizer(RegularizerSpec spec) {
     }
 }*/
 
-std::shared_ptr<objective::Objective> make_loss(
+std::shared_ptr<objective::Objective> dismec::make_loss(
         LossType type,
         std::shared_ptr<const GenericFeatureMatrix> X,
         std::unique_ptr<objective::Objective> reg) {
@@ -66,7 +69,7 @@ std::shared_ptr<objective::Objective> DiSMECTraining::make_objective() const {
 }
 
 std::unique_ptr<solvers::Minimizer> DiSMECTraining::make_minimizer() const {
-    auto minimizer = std::make_unique<solvers::NewtonWithLineSearch>(get_data().num_features());
+    auto minimizer = std::make_unique<solvers::NewtonWithLineSearch>(num_features());
     m_NewtonSettings.apply(*minimizer);
     return minimizer;
 }
@@ -151,9 +154,9 @@ TrainingStatsGatherer& DiSMECTraining::get_statistics_gatherer() {
 }
 
 
-std::shared_ptr<TrainingSpec> create_dismec_training(std::shared_ptr<const DatasetBase> data,
-                                                     HyperParameters params,
-                                                     DismecTrainingConfig config) {
+std::shared_ptr<TrainingSpec> dismec::create_dismec_training(std::shared_ptr<const DatasetBase> data,
+                                                             HyperParameters params,
+                                                             DismecTrainingConfig config) {
     if(!config.Init)
         config.Init = init::create_zero_initializer();
     if(!config.PostProcessing)
@@ -166,3 +169,5 @@ std::shared_ptr<TrainingSpec> create_dismec_training(std::shared_ptr<const Datas
                                             config.Regularizer,
                                             config.Loss);
 }
+
+long TrainingSpec::num_features() const { return get_data().num_features(); }

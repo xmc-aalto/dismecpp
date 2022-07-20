@@ -10,7 +10,7 @@
 #include <string>
 #include "utils/opaque_int.h"
 
-namespace stats {
+namespace dismec::stats {
     namespace detail {
         /// A tag struct to define an opaque int to identify a statistics
         struct stat_id_tag;

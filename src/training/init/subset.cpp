@@ -10,10 +10,10 @@
 #include "data/data.h"
 #include "data/transform.h"
 #include "objective/objective.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include <limits>
 
-using namespace init;
+using namespace dismec::init;
 
 SubsetFeatureMeanInitializer::SubsetFeatureMeanInitializer(
         std::shared_ptr<const DatasetBase> data,

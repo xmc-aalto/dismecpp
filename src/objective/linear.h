@@ -7,11 +7,9 @@
 #define DISMEC_LINEAR_H
 
 #include "objective.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 
-class DatasetBase;
-
-namespace objective {
+namespace dismec::objective {
     /*!
      * \brief Base class for objectives that use a linear classifier.
      * \details This base provides functions for caching the matrix multiplication \f$ x^T w \f$
@@ -106,6 +104,7 @@ namespace objective {
 
         /// Label vector -- use a vector of ints here. We encode label present == 1, absent == -1
         BinaryLabelVector m_Y;
+
         /// This function will be called whenever m_Y changes so that derived classes can invalidate
         /// their caches.
         virtual void invalidate_labels() = 0;

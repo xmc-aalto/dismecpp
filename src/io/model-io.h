@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <optional>
 #include <future>
+#include "fwd.h"
 #include "data/types.h"
 #include <boost/iterator/iterator_adaptor.hpp>
 
@@ -83,17 +84,13 @@
  *  \ref io::model::load_dense_weights_npy.
  */
 
-namespace model {
-    class Model;
-}
-
-namespace io
+namespace dismec::io
 {
 
     //! namespace for all model-related io functions.
     namespace model
     {
-        using ::model::Model;
+        using dismec::model::Model;
         using std::filesystem::path;
 
         /*!
@@ -356,6 +353,11 @@ namespace io
              * \param index The index of the sub-model to be loaded.
              */
             [[nodiscard]] std::shared_ptr<Model> load_model(int index) const;
+
+            /*!
+             * \brief Validates that all weight files exist.
+             */
+            bool validate() const;
 
             /// Returns the number of availabel weight files.
             [[nodiscard]] long num_weight_files() const;

@@ -15,6 +15,8 @@
 #include "statistics.h"
 #include "utils/eigen_generic.h"
 
+using namespace dismec;
+
 TrainingTaskGenerator::TrainingTaskGenerator(std::shared_ptr<TrainingSpec> spec,
                                              label_id_t begin_label, label_id_t end_label) :
         m_TaskSpec(std::move(spec)),
@@ -27,7 +29,7 @@ TrainingTaskGenerator::TrainingTaskGenerator(std::shared_ptr<TrainingSpec> spec,
                                 m_LabelRangeEnd - m_LabelRangeBegin,
                                 static_cast<long>(m_TaskSpec->get_data().num_labels())};
 
-    m_Model = m_TaskSpec->make_model(m_TaskSpec->get_data().num_features(), model_spec);
+    m_Model = m_TaskSpec->make_model(m_TaskSpec->num_features(), model_spec);
 }
 
 TrainingTaskGenerator::~TrainingTaskGenerator() = default;
@@ -90,7 +92,7 @@ void TrainingTaskGenerator::prepare(long num_threads, long chunk_size) {
 
 void TrainingTaskGenerator::init_thread(thread_id_t thread_id)
 {
-    m_ThreadLocalWorkingVector.at(thread_id.to_index()) = DenseRealVector::Zero(m_TaskSpec->get_data().num_features());
+    m_ThreadLocalWorkingVector.at(thread_id.to_index()) = DenseRealVector::Zero(m_TaskSpec->num_features());
     m_ThreadLocalMinimizer.at(thread_id.to_index()) = m_TaskSpec->make_minimizer();
     m_ThreadLocalObjective.at(thread_id.to_index()) = m_TaskSpec->make_objective();
     m_ThreadLocalWeightInit.at(thread_id.to_index()) = m_TaskSpec->make_initializer();
@@ -117,7 +119,7 @@ long TrainingTaskGenerator::num_tasks() const {
     return m_Results.size();
 }
 
-TrainingResult run_training(parallel::ParallelRunner& runner, std::shared_ptr<TrainingSpec> spec,
+TrainingResult dismec::run_training(parallel::ParallelRunner& runner, std::shared_ptr<TrainingSpec> spec,
                             label_id_t begin_label, label_id_t end_label)
 {
     auto task = TrainingTaskGenerator(std::move(spec), begin_label, end_label);

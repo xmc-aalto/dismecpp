@@ -6,17 +6,18 @@
 #include "reg_sq_hinge.h"
 
 #include <utility>
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "utils/fast_sparse_row_iter.h"
 #include "reg_sq_hinge_detail.h"
 #include "spdlog/spdlog.h"
 #include "stats/collection.h"
 
-using namespace objective;
-using namespace l2_reg_sq_hinge_detail;
+using namespace dismec::objective;
+using namespace dismec::l2_reg_sq_hinge_detail;
 
 namespace {
-    stats::stat_id_t STAT_GRAD_SPARSITY{8};
+    using dismec::stats::stat_id_t;
+    stat_id_t STAT_GRAD_SPARSITY{8};
 }
 
 Regularized_SquaredHingeSVC::Regularized_SquaredHingeSVC(std::shared_ptr<const GenericFeatureMatrix> X,

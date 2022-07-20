@@ -8,7 +8,7 @@
 
 #include "model.h"
 
-namespace model {
+namespace dismec::model {
     template<class T>
     class SubModelWrapper : public Model {
         using model_t = std::remove_reference_t<decltype(*std::declval<T>())>;

@@ -10,7 +10,8 @@
 #include "io/numpy.h"
 #include "utils/eigen_generic.h"
 
-using namespace io::model;
+using namespace dismec;
+using namespace dismec::io::model;
 
 namespace {
     /*!
@@ -148,13 +149,17 @@ void io::model::load_sparse_weights_txt(std::istream& source, Model& target) {
                         label.to_index(), target.num_labels());
         }
         sparse_vec.setZero();
-        io::parse_sparse_vector_from_text(line_buffer.data(), [&](long index, double value) {
-            if (index >= num_features || index < 0) {
-                THROW_ERROR("Encountered index {:5} with value {} for weights of label {:6}. Number of features "
-                            "was specified as {}.", index, value, label.to_index(), num_features);
-            };
-            sparse_vec.insertBack(index) = value;
-        });
+        try {
+            io::parse_sparse_vector_from_text(line_buffer.data(), [&](long index, double value) {
+                if (index >= num_features || index < 0) {
+                    THROW_ERROR("Encountered index {:5} with value {} for weights of label {:6}. Number of features "
+                                "was specified as {}.", index, value, label.to_index(), num_features);
+                };
+                sparse_vec.insertBack(index) = value;
+            });
+        } catch (const std::exception& error) {
+            THROW_ERROR("Error while parsing weights for label {:6}: {}", label.to_index(), error.what());
+        }
 
         target.set_weights_for_label(label, Model::WeightVectorIn{sparse_vec});
     }

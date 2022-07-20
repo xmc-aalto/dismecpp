@@ -11,7 +11,7 @@
 #include <chrono>
 #include "spdlog/spdlog.h"
 
-namespace parallel {
+namespace dismec::parallel {
     class TaskGenerator;
 
     struct RunResult {

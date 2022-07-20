@@ -6,7 +6,7 @@
 #include "null.h"
 #include "stats/collection.h"
 
-using namespace solvers;
+using namespace dismec::solvers;
 
 
 namespace {
@@ -18,7 +18,7 @@ namespace {
     stats::stat_id_t STAT_ITER_TIME{8};
     stats::stat_id_t STAT_PROGRESS{11};
 */
-    stats::tag_id_t TAG_ITERATION{0};
+    dismec::stats::tag_id_t TAG_ITERATION{0};
 };
 
 

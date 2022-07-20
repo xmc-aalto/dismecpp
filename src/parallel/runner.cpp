@@ -10,7 +10,7 @@
 #include "parallel/task.h"
 #include "parallel/numa.h"
 
-using namespace parallel;
+using namespace dismec::parallel;
 
 ParallelRunner::ParallelRunner(long num_threads, long chunk_size) :
         m_NumThreads(num_threads), m_ChunkSize(chunk_size),

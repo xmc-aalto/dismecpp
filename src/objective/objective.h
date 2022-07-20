@@ -10,11 +10,9 @@
 #include <memory>
 #include "matrix_types.h"
 #include "stats/tracked.h"
+#include "fwd.h"
 
-class MultiLabelData;
-class HashVector;
-
-namespace objective 
+namespace dismec::objective
 {
     /*!
      * \brief Class that models an optimization objective.

@@ -17,7 +17,7 @@
 
 #include "spdlog/fmt/fmt.h"
 
-
+using namespace dismec;
 using PyWeighting = std::shared_ptr<WeightingScheme>;
 
 void register_regularizers(pybind11::module_& root) {

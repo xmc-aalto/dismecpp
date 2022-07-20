@@ -7,10 +7,10 @@
 #define DISMEC_POINTWISE_H
 
 #include "objective.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "utils/throw_error.h"
 
-namespace objective {
+namespace dismec::objective {
     /*!
      * \brief Base class for pointwise regularization functions
      * \tparam CRTP This class is implemented as a CRTP (https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) template

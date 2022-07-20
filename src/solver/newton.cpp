@@ -5,29 +5,31 @@
 
 #include "newton.h"
 #include "line_search.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "solver/cg.h"
 #include "stats/collection.h"
 #include "stats/timer.h"
 
-using namespace solvers;
+using namespace dismec::solvers;
 
 namespace {
-    stats::stat_id_t STAT_GRADIENT_NORM_0{0};
-    stats::stat_id_t STAT_OBJECTIVE_VALUE{1};
-    stats::stat_id_t STAT_GRADIENT_NORM{2};
-    stats::stat_id_t STAT_GRADIENT{3};
-    stats::stat_id_t STAT_PRECONDITIONER{4};
-    stats::stat_id_t STAT_WEIGHT_VECTOR{5};
-    stats::stat_id_t STAT_LINESEARCH_STEPSIZE{6};
-    stats::stat_id_t STAT_CG_ITERS{7};
-    stats::stat_id_t STAT_ITER_TIME{8};
-    stats::stat_id_t STAT_LS_FAIL{9};
-    stats::stat_id_t STAT_LS_STEPS{10};
-    stats::stat_id_t STAT_PROGRESS{11};
-    stats::stat_id_t STAT_ABSOLUTE_STEP{12};
+    using dismec::stats::stat_id_t;
 
-    stats::tag_id_t TAG_ITERATION{0};
+    stat_id_t STAT_GRADIENT_NORM_0{0};
+    stat_id_t STAT_OBJECTIVE_VALUE{1};
+    stat_id_t STAT_GRADIENT_NORM{2};
+    stat_id_t STAT_GRADIENT{3};
+    stat_id_t STAT_PRECONDITIONER{4};
+    stat_id_t STAT_WEIGHT_VECTOR{5};
+    stat_id_t STAT_LINESEARCH_STEPSIZE{6};
+    stat_id_t STAT_CG_ITERS{7};
+    stat_id_t STAT_ITER_TIME{8};
+    stat_id_t STAT_LS_FAIL{9};
+    stat_id_t STAT_LS_STEPS{10};
+    stat_id_t STAT_PROGRESS{11};
+    stat_id_t STAT_ABSOLUTE_STEP{12};
+
+    dismec::stats::tag_id_t TAG_ITERATION{0};
 };
 
 NewtonWithLineSearch::NewtonWithLineSearch(long num_variables) : m_CG_Solver(num_variables),
@@ -98,7 +100,7 @@ MinimizationResult NewtonWithLineSearch::run(objective::Objective& objective, Ei
     }
 
     if(m_Logger) {
-        m_Logger->info("initial: f={:5.3} |g|={:5.3} |g_0|={:5.3} eps={:5.3}", f, gnorm, gnorm0, m_Epsilon);
+        m_Logger->info("initial: f={:<5.3} |g|={:<5.3} |g_0|={:<5.3} eps={:<5.3}", f, gnorm, gnorm0, m_Epsilon);
     }
 
     if (gnorm <= m_Epsilon * gnorm0)
@@ -176,7 +178,7 @@ void NewtonWithLineSearch::record_iteration(int iter, int cg_iter, real_t gnorm,
     record(STAT_PROGRESS, gnorm / gnorm0);
 
     if(m_Logger) {
-        m_Logger->info("iter {:3}: f={:5.10} |g|={:5.3} CG={:3} line-search={:4.2}",
+        m_Logger->info("iter {:3}: f={:<10.8} |g|={:<8.4} CG={:<3} line-search={:<4.2}",
                        iter, objective, gnorm, cg_iter, step.StepSize);
     }
 }
@@ -206,6 +208,9 @@ void NewtonWithLineSearch::set_alpha_preconditioner(double alpha) {
 }
 
 #include "doctest.h"
+#include <Eigen/Dense>
+
+using namespace dismec;
 
 TEST_CASE("newton with line search hyperparameters") {
     NewtonWithLineSearch nwls{2};
@@ -236,7 +241,7 @@ TEST_CASE("newton with line search hyperparameters") {
 }
 
 TEST_CASE("solve square objective") {
-    struct QuadraticObjective : public objective::Objective {
+    struct QuadraticObjective : public dismec::objective::Objective {
         QuadraticObjective(types::DenseColMajor<real_t> m, DenseRealVector s) : A(std::move(m)), b(std::move(s)),
             m_LocCache(A.row(0)){}
 
@@ -256,7 +261,7 @@ TEST_CASE("solve square objective") {
             target =  2 * A * direction;
         }
 
-        void project_to_line(const HashVector& location, const DenseRealVector& direction) override {
+        void project_to_line_unchecked(const HashVector& location, const DenseRealVector& direction) override {
             m_DirCache = direction;
             m_LocCache = location;
         };

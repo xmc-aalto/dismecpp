@@ -5,11 +5,12 @@
 
 #include "regularizers_imp.h"
 #include "regularizers.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 
-using objective::SquaredNormRegularizer;
-using objective::HuberRegularizer;
-using objective::ElasticNetRegularizer;
+namespace objective = dismec::objective;
+using dismec::objective::SquaredNormRegularizer;
+using dismec::objective::HuberRegularizer;
+using dismec::objective::ElasticNetRegularizer;
 
 SquaredNormRegularizer::SquaredNormRegularizer(real_t scale, bool ignore_bias) :
         PointWiseRegularizer(scale, ignore_bias) {
@@ -38,6 +39,7 @@ real_t SquaredNormRegularizer::lookup_on_line(real_t a) {
     return real_t{0.5} * scale() * (m_LsCache_w02 + 2*a*m_LsCache_dTw + a*a*m_LsCache_d2);
 }
 
+// TODO put some comments that figure out what is happening here!!!
 real_t objective::SquaredNormRegularizer::value_unchecked(const HashVector& location) {
     return real_t{0.5} * PointWiseRegularizer::value_unchecked(location);
 }
@@ -134,6 +136,8 @@ std::unique_ptr<Objective> objective::make_regularizer(const ElasticConfig& conf
 
 
 #include "doctest.h"
+
+using namespace dismec;
 
 namespace {
     DenseRealVector make_vec(std::initializer_list<real_t> values) {

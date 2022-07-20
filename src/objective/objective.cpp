@@ -4,11 +4,12 @@
 // SPDX-License-Identifier: MIT
 
 #include "objective.h"
-#include "hash_vector.h"
+#include "utils/hash_vector.h"
 #include "utils/throw_error.h"
 #include "stats/timer.h"
 
-using namespace objective;
+using namespace dismec;
+using namespace dismec::objective;
 
 namespace {
     stats::stat_id_t STAT_PERF_VALUE{0};
@@ -34,10 +35,7 @@ Objective::Objective() {
 real_t Objective::value(const HashVector& location) {
     auto timer = make_timer(STAT_PERF_VALUE);
     if(num_variables() > 0) {
-        if (location->size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "location size {} differs from num_variables {}", location->size(),
-                            num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(location->size(), num_variables(), "location size {} differs from num_variables {}");
     }
     return value_unchecked(location);
 }
@@ -45,18 +43,12 @@ real_t Objective::value(const HashVector& location) {
 void Objective::diag_preconditioner(const HashVector& location, Eigen::Ref<DenseRealVector> target) {
     auto timer = make_timer(STAT_PERF_PRECONDITIONER);
     if(num_variables() > 0) {
-        if(location->size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "location size {} differs from num_variables {}", location->size(), num_variables());
-        }
-        if(target.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from num_variables {}", target.size(), num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(location->size(), num_variables(), "location size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(target.size(), num_variables(), "target size {} differs from num_variables {}");
     } else {
-        if(target.size() != location->size()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from location size {}", target.size(), location->size());
-        }
+        ALWAYS_ASSERT_EQUAL(target.size(), location->size(), "target size {} differs from location size {}");
     }
-    target.setOnes();
+    diag_preconditioner_unchecked(location, target);
 }
 
 void Objective::diag_preconditioner_unchecked(const HashVector& location, Eigen::Ref<DenseRealVector> target) {
@@ -68,22 +60,12 @@ void Objective::gradient_and_pre_conditioner(const HashVector& location,
                                              Eigen::Ref<DenseRealVector> pre) {
     auto timer = make_timer(STAT_PERF_GRAD_AND_PRE);
     if(num_variables() > 0) {
-        if(location->size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "location size {} differs from num_variables {}", location->size(), num_variables());
-        }
-        if(gradient.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "gradient size {} differs from num_variables {}", gradient.size(), num_variables());
-        }
-        if(pre.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "pre size {} differs from num_variables {}", pre.size(), num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(location->size(), num_variables(), "location size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(gradient.size(), num_variables(), "gradient size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(pre.size(), num_variables(), "pre size {} differs from num_variables {}");
     } else {
-        if(gradient.size() != location->size()) {
-            THROW_EXCEPTION(std::invalid_argument, "gradient size {} differs from location size {}", gradient.size(), location->size());
-        }
-        if(pre.size() != location->size()) {
-            THROW_EXCEPTION(std::invalid_argument, "pre size {} differs from location size {}", pre.size(), location->size());
-        }
+        ALWAYS_ASSERT_EQUAL(gradient.size(), location->size(), "gradient size {} differs from location size {}");
+        ALWAYS_ASSERT_EQUAL(pre.size(), location->size(), "pre size {} differs from location size {}");
     }
 
     gradient_and_pre_conditioner_unchecked(location, gradient, pre);
@@ -100,10 +82,7 @@ void Objective::gradient_and_pre_conditioner_unchecked(
 void Objective::gradient_at_zero(Eigen::Ref<DenseRealVector> target) {
     auto timer = make_timer(STAT_PERF_GRAD_AT_ZERO);
     if(num_variables() > 0) {
-        if (target.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from num_variables {}", target.size(),
-                            num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(target.size(), num_variables(), "target size {} differs from num_variables {}");
     }
     gradient_at_zero_unchecked(target);
 }
@@ -117,16 +96,10 @@ void Objective::gradient_at_zero_unchecked(Eigen::Ref<DenseRealVector> target) {
 void Objective::gradient(const HashVector& location, Eigen::Ref<DenseRealVector> target) {
     auto timer = make_timer(STAT_PERF_GRADIENT);
     if(num_variables() > 0) {
-        if(location->size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "location size {} differs from num_variables {}", location->size(), num_variables());
-        }
-        if(target.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from num_variables {}", target.size(), num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(location->size(), num_variables(), "location size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(target.size(), num_variables(), "target size {} differs from num_variables {}");
     } else {
-        if(target.size() != location->size()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from location size {}", target.size(), location->size());
-        }
+        ALWAYS_ASSERT_EQUAL(target.size(), location->size(), "target size {} differs from location size {}");
     }
     gradient_unchecked(location, target);
 }
@@ -137,27 +110,12 @@ void Objective::hessian_times_direction(
         Eigen::Ref<DenseRealVector> target) {
     auto timer = make_timer(STAT_PERF_HESSIAN);
     if(num_variables() > 0) {
-        if(location->size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "location size {} differs from num_variables {}",
-                            location->size(), num_variables());
-        }
-        if(target.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from num_variables {}",
-                            target.size(), num_variables());
-        }
-        if(direction.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "direction size {} differs from num_variables {}",
-                            direction.size(), num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(location->size(), num_variables(), "location size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(target.size(), num_variables(), "target size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(direction.size(), num_variables(), "direction size {} differs from num_variables {}");
     } else {
-        if(target.size() != location->size()) {
-            THROW_EXCEPTION(std::invalid_argument, "target size {} differs from location size {}",
-                            target.size(), location->size());
-        }
-        if(direction.size() != location->size()) {
-            THROW_EXCEPTION(std::invalid_argument, "direction size {} differs from location size {}",
-                            direction.size(), location->size());
-        }
+        ALWAYS_ASSERT_EQUAL(target.size(), location->size(), "target size {} differs from location size {}");
+        ALWAYS_ASSERT_EQUAL(direction.size(), location->size(), "direction size {} differs from location size {}");
     }
 
     hessian_times_direction_unchecked(location, direction, target);
@@ -166,14 +124,10 @@ void Objective::hessian_times_direction(
 void Objective::project_to_line(const HashVector& location, const DenseRealVector& direction) {
     auto timer = make_timer(STAT_PERF_PROJ_TO_LINE);
     if(num_variables() > 0) {
-        if (location->size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "location size {} differs from num_variables {}",
-                            location->size(), num_variables());
-        }
-        if(direction.size() != num_variables()) {
-            THROW_EXCEPTION(std::invalid_argument, "direction size {} differs from num_variables {}",
-                            direction.size(), num_variables());
-        }
+        ALWAYS_ASSERT_EQUAL(location->size(), num_variables(), "location size {} differs from num_variables {}");
+        ALWAYS_ASSERT_EQUAL(direction.size(), num_variables(), "direction size {} differs from num_variables {}");
+    } else {
+        ALWAYS_ASSERT_EQUAL(direction.size(), location->size(), "direction size {} differs from location size {}");
     }
     project_to_line_unchecked(location, direction);
 }

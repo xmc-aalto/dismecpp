@@ -7,7 +7,8 @@
 #include "doctest.h"
 #include <spdlog/spdlog.h>
 
-using namespace solvers;
+using namespace dismec;
+using dismec::solvers::CGMinimizer;
 
 CGMinimizer::CGMinimizer(std::size_t num_vars) : m_Size(num_vars) {
     m_A_times_d = DenseRealVector(num_vars);

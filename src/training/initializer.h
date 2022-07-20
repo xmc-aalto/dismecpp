@@ -7,22 +7,15 @@
 #define DISMEC_INITIALIZER_H
 
 #include "matrix_types.h"
+#include "fwd.h"
 #include "parallel/numa.h"
 #include "stats/tracked.h"
 #include "spec.h"
 #include <memory>
-class label_id_t;
-class DatasetBase;
+#include <filesystem>
+#include <optional>
 
-namespace model {
-    class Model;
-}
-
-namespace objective {
-    class Objective;
-}
-
-namespace init {
+namespace dismec::init {
     /*!
      * \brief Base class for all weight initializers.
      * \details Weight initializers are used by `TrainingTaskGenerator` to generate the initial weight vector
@@ -82,6 +75,10 @@ namespace init {
 
     /// Creates an initialization strategy that uses an already trained model to set the initial weights.
     std::shared_ptr<WeightInitializationStrategy> create_pretrained_initializer(std::shared_ptr<model::Model> model);
+
+    /// Creates an initialization strategy that uses weights loaded from a npy file
+    std::shared_ptr<WeightInitializationStrategy> create_numpy_initializer(const std::filesystem::path& weights,
+                                                                           std::optional<std::filesystem::path> biases);
 
     /// Creates an initialization strategy based on the mean of positive and negative features.
     std::shared_ptr<WeightInitializationStrategy> create_feature_mean_initializer(std::shared_ptr<DatasetBase> data, real_t pos=1, real_t neg=-2);

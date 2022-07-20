@@ -7,7 +7,7 @@
 #include "collection.h"
 #include <nlohmann/json.hpp>
 
-using namespace stats;
+using namespace dismec::stats;
 
 void CounterStat::record(long integer) {
     m_Counter += integer;
@@ -214,7 +214,7 @@ nlohmann::json VectorReductionStat::to_json() const {
 }
 
 #include "histogram.h"
-std::unique_ptr<stats::Statistics> stats::make_stat_from_json(const nlohmann::json& source) {
+std::unique_ptr<Statistics> dismec::stats::make_stat_from_json(const nlohmann::json& source) {
     auto type = source.at("type").get<std::string>();
     if(type == "Basic") {
         return std::make_unique<BasicStat>();

@@ -12,6 +12,7 @@
 #include <numeric>
 #include <fstream>
 
+namespace parallel = dismec::parallel;
 using namespace parallel;
 
 // https://stackoverflow.com/questions/61454437/programmatically-get-accurate-cpu-cache-hierarchy-information-on-linux

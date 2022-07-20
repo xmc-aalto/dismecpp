@@ -13,7 +13,7 @@
 #include "matrix_types.h"
 #include "stat_id.h"
 
-namespace stats
+namespace dismec::stats
 {
     /*!
      * \brief This class manages a collection of named `Statistics` objects.

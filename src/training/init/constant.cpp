@@ -6,9 +6,9 @@
 #include "training/initializer.h"
 #include "data/types.h"
 
-using namespace init;
+using namespace dismec::init;
 
-namespace init {
+namespace dismec::init {
     class ConstantInitializer : public WeightsInitializer {
     public:
         ConstantInitializer(std::shared_ptr<const DenseRealVector> vec) : m_InitVector(std::move(vec)) {
@@ -53,6 +53,6 @@ std::unique_ptr<WeightsInitializer> ConstantInitializationStrategy::make_initial
     return std::make_unique<ConstantInitializer>(m_InitVector.get_local() );
 }
 
-std::shared_ptr<WeightInitializationStrategy> init::create_constant_initializer(DenseRealVector vec) {
+std::shared_ptr<WeightInitializationStrategy> dismec::init::create_constant_initializer(DenseRealVector vec) {
     return std::make_shared<ConstantInitializationStrategy>(std::move(vec));
 }

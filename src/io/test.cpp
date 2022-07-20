@@ -8,6 +8,7 @@
 #include "data/data.h"
 #include <vector>
 #include "doctest.h"
+using namespace dismec;
 
 
 const char* TEST_FILE = \

@@ -7,7 +7,8 @@
 #include "spdlog/fmt/fmt.h"
 #include "utils/eigen_generic.h"
 
-using namespace model;
+using namespace dismec;
+using namespace dismec::model;
 
 namespace {
     /*!

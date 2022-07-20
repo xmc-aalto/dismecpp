@@ -7,8 +7,11 @@
 #include "collection.h"
 #include <nlohmann/json.hpp>
 
+using namespace dismec;
+using namespace dismec::stats;
+
+#if DISMEC_STATS_SUPPORT_HISTOGRAM
 using namespace boost::histogram;
-using namespace stats;
 
 
 namespace axis = boost::histogram::axis;
@@ -120,11 +123,11 @@ nlohmann::json HistogramStat<Axis>::to_json() const {
     return temp;
 }
 
-std::unique_ptr<Statistics> stats::make_linear_histogram(int bins, real_t min, real_t max) {
+std::unique_ptr<Statistics> dismec::stats::make_linear_histogram(int bins, real_t min, real_t max) {
     return std::make_unique<HistogramStat<lin_axis_t>>(bins, min, max);
 }
 
-std::unique_ptr<Statistics> stats::make_logarithmic_histogram(int bins, real_t min, real_t max) {
+std::unique_ptr<Statistics> dismec::stats::make_logarithmic_histogram(int bins, real_t min, real_t max) {
     return std::make_unique<HistogramStat<log_axis_t>>(bins, min, max);
 }
 
@@ -203,10 +206,26 @@ void TaggedHistogramStat<Axis>::setup(const StatisticsCollection& source) {
     m_Tag = source.get_tag_by_name(m_Tag.get_name());
 }
 
-std::unique_ptr<Statistics> stats::make_linear_histogram(std::string tag, int max_tag, int bins, real_t min, real_t max) {
+std::unique_ptr<Statistics> dismec::stats::make_linear_histogram(std::string tag, int max_tag, int bins, real_t min, real_t max) {
     return std::make_unique<TaggedHistogramStat<lin_axis_t>>(std::move(tag), max_tag, bins, min, max);
 }
 
-std::unique_ptr<Statistics> stats::make_logarithmic_histogram(std::string tag, int max_tag, int bins, real_t min, real_t max) {
+std::unique_ptr<Statistics> dismec::stats::make_logarithmic_histogram(std::string tag, int max_tag, int bins, real_t min, real_t max) {
     return std::make_unique<TaggedHistogramStat<log_axis_t>>(std::move(tag), max_tag, bins, min, max);
 }
+#else
+std::unique_ptr<Statistics> dismec::stats::make_linear_histogram(int bins, real_t min, real_t max) {
+    throw std::runtime_error("Histogram statistics not supported in this binary");
+}
+
+std::unique_ptr<Statistics> dismec::stats::make_logarithmic_histogram(int bins, real_t min, real_t max) {
+    throw std::runtime_error("Histogram statistics not supported in this binary");
+}
+std::unique_ptr<Statistics> dismec::stats::make_linear_histogram(std::string tag, int max_tag, int bins, real_t min, real_t max) {
+    throw std::runtime_error("Histogram statistics not supported in this binary");
+}
+
+std::unique_ptr<Statistics> dismec::stats::make_logarithmic_histogram(std::string tag, int max_tag, int bins, real_t min, real_t max) {
+    throw std::runtime_error("Histogram statistics not supported in this binary");
+}
+#endif

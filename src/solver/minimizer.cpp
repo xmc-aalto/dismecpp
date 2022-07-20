@@ -9,7 +9,7 @@
 #include "spdlog/spdlog.h"
 #include "stats/collection.h"
 
-using namespace solvers;
+using namespace dismec::solvers;
 
 Minimizer::Minimizer(std::shared_ptr<spdlog::logger> logger) :
     m_Logger(std::move(logger)) {
@@ -35,11 +35,15 @@ MinimizationResult Minimizer::minimize(objective::Objective& objective, Eigen::R
 
 #include "doctest.h"
 
+using namespace dismec;
+
 namespace
 {
+    using dismec::objective::Objective;
+
     //! A minimizer to be used in test cases that returns a fixed result.
-    class MockMinimizer : public solvers::Minimizer {
-        MinimizationResult run(objective::Objective& objective, Eigen::Ref<DenseRealVector> init) override {
+    class MockMinimizer : public Minimizer {
+        MinimizationResult run(Objective& objective, Eigen::Ref<DenseRealVector> init) override {
             MinimizationResult result;
             result.Outcome = MinimizerStatus::DIVERGED;
             result.FinalGrad = 5.0;
@@ -52,7 +56,7 @@ namespace
     };
 
     //! An objective to be used in test cases. Does not do any computations, but just resturns constants.
-    struct MockObjective : public objective::Objective {
+    struct MockObjective : public Objective {
         [[nodiscard]] long num_variables() const noexcept override { return 12; }
         real_t value_unchecked(const HashVector& location) override { return 5.0; }
         void gradient_unchecked(const HashVector& location, Eigen::Ref<DenseRealVector> target) override {};

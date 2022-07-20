@@ -6,6 +6,8 @@
 #include "hash_vector.h"
 #include <atomic>
 
+using namespace dismec;
+
 /*!
  * \brief  Local namespace in which we define the counter used to create the unique ids for the hash vector.
  * \details  we have two options here -- either use an atomic counter, so that the results are consistent over all

@@ -6,9 +6,9 @@
 #include "training/initializer.h"
 #include "data/types.h"
 
-using namespace init;
+using namespace dismec::init;
 
-namespace init {
+namespace dismec::init {
     class ZeroInitializer : public WeightsInitializer {
     public:
         void get_initial_weight(label_id_t label_id, Eigen::Ref<DenseRealVector> target, objective::Objective& objective) override {
@@ -28,6 +28,6 @@ std::unique_ptr<WeightsInitializer> ZeroInitializationStrategy::make_initializer
     return std::make_unique<ZeroInitializer>();
 }
 
-std::shared_ptr<WeightInitializationStrategy> init::create_zero_initializer() {
+std::shared_ptr<WeightInitializationStrategy> dismec::init::create_zero_initializer() {
     return std::make_shared<ZeroInitializationStrategy>();
 }

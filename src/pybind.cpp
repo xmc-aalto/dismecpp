@@ -23,6 +23,7 @@
 #include "parallel/runner.h"
 
 namespace py = pybind11;
+using namespace dismec;
 
 using PyTrainSpec = PyWrapper<TrainingSpec>;
 using PySaver = PyWrapper<io::PartialModelSaver>;
