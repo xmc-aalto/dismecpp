@@ -1,9 +1,10 @@
 import pytest
 from pathlib import Path
 import subprocess
+import os
 
-
-BIN_DIR = Path("../cmake-build-release/bin")
+# figure out where to get the training binary
+BIN_DIR = Path(os.getenv("DISMEC_BIN_DIR", "../cmake-build-release/bin"))
 train_exe = BIN_DIR / "train"
 
 assert train_exe.exists()
@@ -25,7 +26,7 @@ def compare_files(a, b):
 
 def test_simple_run(tmp_path: Path):
     model_name = "eurlex-simple.model"
-    program = [train_exe, "tfidf-eurlex-train.txt", tmp_path / model_name, "--threads", "6", "--augment-for-bias",
+    program = [train_exe, "tfidf-eurlex-train.txt", tmp_path / model_name, "--augment-for-bias",
                "--epsilon", "0.01", "--num-labels", "256", "-q"]
     output = subprocess.check_output(program)
     compare_files(tmp_path / (model_name + ".weights-0-255"),
@@ -34,7 +35,7 @@ def test_simple_run(tmp_path: Path):
 
 def test_sparse_result_run(tmp_path: Path):
     model_name = "eurlex-sparse.model"
-    program = [train_exe, "tfidf-eurlex-train.txt", tmp_path / model_name, "--threads", "6",
+    program = [train_exe, "tfidf-eurlex-train.txt", tmp_path / model_name,
                "--augment-for-bias", "--epsilon", "0.01", "--save-sparse-txt", "--weight-culling", "0.02",
                "--num-labels", "256", "-q"]
     output = subprocess.check_output(program)

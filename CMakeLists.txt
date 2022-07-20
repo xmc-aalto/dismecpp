@@ -54,7 +54,10 @@ unset(CMAKE_POSITION_INDEPENDENT_CODE)
 add_subdirectory(deps/CLI11 EXCLUDE_FROM_ALL)
 add_subdirectory(deps/pybind11 EXCLUDE_FROM_ALL)
 add_subdirectory(deps/nanobench EXCLUDE_FROM_ALL)
-set(BUILD_TESTING Off)
+# disable any tests for eigen
+option(BUILD_TESTING "" OFF)
 add_subdirectory(deps/eigen EXCLUDE_FROM_ALL)
 
+# enable testing only after eigen has been included
+enable_testing()
 add_subdirectory(src)

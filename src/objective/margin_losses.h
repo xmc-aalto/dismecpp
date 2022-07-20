@@ -6,6 +6,8 @@
 #ifndef DISMEC_SRC_OBJECTIVE_MARGIN_LOSSES_H
 #define DISMEC_SRC_OBJECTIVE_MARGIN_LOSSES_H
 
+#include "matrix_types.h"  // for real_t
+
 namespace dismec::objective {
     struct SquaredHingePhi {
         [[nodiscard]] real_t value(real_t margin) const {
