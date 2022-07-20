@@ -1,0 +1,55 @@
+name: Test
+
+on: [push, pull_request]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository, making sure we recursively get the git submodules which contain our dependencies
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      # Install dependencies (currently, only boost, the rest is in submodules)
+      - name: Install Dependencies
+        run: sudo apt -q install -y libboost-all-dev
+
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory, using the build type as set up
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      # use separate script steps for the different targets to make it easier to pinpoint problems if something goes wrong
+      - name: Build Training and Prediction
+        # Build the train and predict executables with the given settings
+        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target train predict
+        timeout-minutes: 5
+
+      - name: Build Tools
+        # Build the tool executables
+        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target tfidf labelstats
+
+      - name: Build Python Bindings
+        # Build the python bindings
+        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target pydismec
+
+      - name: Build Test
+        # Build the unit tests with the given settings
+        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target unittest
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        # Execute tests defined by the CMake configuration.
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        # use verbose output, because the test executable contains multiple tests, and we want to see their status
+        # and not just the whether all tests succeeded.
+        run: ctest -C ${{env.BUILD_TYPE}} -V --output-on-failure
+

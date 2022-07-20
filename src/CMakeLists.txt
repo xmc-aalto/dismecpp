@@ -69,7 +69,7 @@ target_link_libraries(libdismec PUBLIC libdismec_config)
 target_compile_definitions(libdismec PUBLIC DOCTEST_CONFIG_DISABLE)
 set_property(TARGET libdismec PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-add_executable(test test.cpp ${LIB_SRC} ${TESTS_SRC})
+add_executable(unittest test.cpp ${LIB_SRC} ${TESTS_SRC})
 add_executable(train train.cpp training/training.cpp app.cpp)
 add_executable(cascade cascade.cpp training/training.cpp)
 add_executable(predict predict.cpp prediction/prediction.cpp app.cpp)
@@ -81,7 +81,7 @@ set(PYBIND_SRC
 
 pybind11_add_module(pydismec MODULE pybind.cpp training/training.cpp ${LIB_SRC} ${PYBIND_SRC})
 
-set_target_properties( test train predict pydismec cascade
+set_target_properties( unittest train predict pydismec cascade
         PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -91,11 +91,13 @@ set_target_properties( test train predict pydismec cascade
 target_link_libraries(predict PRIVATE CLI11::CLI11 libdismec)
 target_link_libraries(train PRIVATE CLI11::CLI11 libdismec)
 target_link_libraries(cascade PRIVATE CLI11::CLI11 libdismec)
-target_link_libraries(test PRIVATE libdismec_config)
+target_link_libraries(unittest PRIVATE libdismec_config)
 target_link_libraries(pydismec PRIVATE libdismec_config)
 
 # enable or disable tests as desired
 target_compile_definitions(pydismec PRIVATE DOCTEST_CONFIG_DISABLE)
-target_compile_definitions(test PRIVATE DOCTEST_CONFIG_VOID_CAST_EXPRESSIONS)
+target_compile_definitions(unittest PRIVATE DOCTEST_CONFIG_VOID_CAST_EXPRESSIONS)
 
 add_subdirectory(tools)
+
+add_test(NAME unittest COMMAND unittest)
