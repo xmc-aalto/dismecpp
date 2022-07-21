@@ -70,7 +70,7 @@ TrainingStatsGatherer::~TrainingStatsGatherer() {
 
 nlohmann::json TrainingStatsGatherer::to_json() const {
     nlohmann::json result;
-    for(auto& stat : m_Merged) {
+    for(const auto& stat : m_Merged) {
         auto raw = stat.second.Stat->to_json();
         if(!stat.second.Meta.Unit.empty())
             raw["Unit"] = stat.second.Meta.Unit;
@@ -84,20 +84,20 @@ ResultStatsGatherer::ResultStatsGatherer()  = default;
 ResultStatsGatherer::~ResultStatsGatherer() = default;
 
 namespace {
-    stats::stat_id_t STAT_FINAL_LOSS{0};
-    stats::stat_id_t STAT_FINAL_GRAD{1};
-    stats::stat_id_t STAT_INIT_LOSS{2};
-    stats::stat_id_t STAT_INIT_GRAD{3};
-    stats::stat_id_t STAT_NUM_ITERS{4};
-    stats::stat_id_t STAT_DURATION{5};
-    stats::stat_id_t STAT_WEIGHT_VECTOR{6};
-    stats::stat_id_t STAT_LABEL_ID{7};
-    stats::stat_id_t STAT_LABEL_FREQ{8};
-    stats::stat_id_t STAT_INIT_VECTOR{9};
-    stats::stat_id_t STAT_TRAINING_SHIFT{10};
+    constexpr const stats::stat_id_t STAT_FINAL_LOSS{0};
+    constexpr const stats::stat_id_t STAT_FINAL_GRAD{1};
+    constexpr const stats::stat_id_t STAT_INIT_LOSS{2};
+    constexpr const stats::stat_id_t STAT_INIT_GRAD{3};
+    constexpr const stats::stat_id_t STAT_NUM_ITERS{4};
+    constexpr const stats::stat_id_t STAT_DURATION{5};
+    constexpr const stats::stat_id_t STAT_WEIGHT_VECTOR{6};
+    constexpr const stats::stat_id_t STAT_LABEL_ID{7};
+    constexpr const stats::stat_id_t STAT_LABEL_FREQ{8};
+    constexpr const stats::stat_id_t STAT_INIT_VECTOR{9};
+    constexpr const stats::stat_id_t STAT_TRAINING_SHIFT{10};
 
-    stats::tag_id_t  TAG_LABEL_ID{0};
-    stats::tag_id_t  TAG_LABEL_FREQ{1};
+    constexpr const stats::tag_id_t  TAG_LABEL_ID{0};
+    constexpr const stats::tag_id_t  TAG_LABEL_FREQ{1};
 
     class DefaultGatherer: public ResultStatsGatherer {
     public:

@@ -6,7 +6,11 @@
 #ifndef DISMEC_SRC_OBJECTIVE_MARGIN_LOSSES_H
 #define DISMEC_SRC_OBJECTIVE_MARGIN_LOSSES_H
 
-#include "matrix_types.h"  // for real_t
+#include "config.h"
+
+// The structs defined here are used in a template.
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-convert-member-functions-to-static"
 
 namespace dismec::objective {
     struct SquaredHingePhi {
@@ -85,3 +89,5 @@ namespace dismec::objective {
 }
 
 #endif //DISMEC_SRC_OBJECTIVE_MARGIN_LOSSES_H
+
+#pragma clang diagnostic pop

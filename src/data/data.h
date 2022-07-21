@@ -15,6 +15,10 @@ namespace dismec {
     class DatasetBase {
     public:
         virtual ~DatasetBase() = default;
+        DatasetBase(const DatasetBase&) = default;
+        DatasetBase(DatasetBase&&) = default;
+        DatasetBase& operator=(DatasetBase&&) = default;
+        DatasetBase& operator=(const DatasetBase&) = default;
 
         /// get a shared pointer to the (immutable) feature data
         [[nodiscard]] std::shared_ptr<const GenericFeatureMatrix> get_features() const;

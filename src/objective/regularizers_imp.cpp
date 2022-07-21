@@ -139,6 +139,9 @@ std::unique_ptr<Objective> objective::make_regularizer(const ElasticConfig& conf
 
 using namespace dismec;
 
+#ifndef DOCTEST_CONFIG_DISABLE
+
+// helper functions for testing
 namespace {
     DenseRealVector make_vec(std::initializer_list<real_t> values) {
         DenseRealVector vec(values.size());
@@ -148,6 +151,51 @@ namespace {
             ++it;
         }
         return vec;
+    }
+
+    void verify_line_search(objective::Objective& reg) {
+        DenseRealVector loc = make_vec({1.0, 2.0, -3.0, 0.0});
+        DenseRealVector dir = make_vec({3.0, -1.0, 2.0, 1.0});
+
+        reg.project_to_line(HashVector{loc}, dir);
+
+        for(real_t t : {-1.2f, 0.1f, 0.5f, 0.8f, 2.5f}) {
+            real_t predict = reg.lookup_on_line(t);
+            real_t actual = reg.value(HashVector{loc + t*dir});
+            CHECK(predict == doctest::Approx(actual));
+        }
+    }
+
+    void verify_bias(objective::Objective& full, objective::Objective& no_bias) {
+        DenseRealVector loc = make_vec({1.0, 0.05, -3.0, 0.0});
+        DenseRealVector dir = make_vec({3.0, -1.0, 2.0, 1.0});
+        HashVector hl{loc};
+
+        // short versions
+        HashVector short_loc{loc.topRows(3)};
+        DenseRealVector short_dir{dir.topRows(3)};
+
+        // short on full objective
+        real_t reference = full.value(short_loc);
+        CHECK(no_bias.value(hl) == doctest::Approx(reference));
+
+        DenseRealVector target = DenseRealVector::Random(4);
+        DenseRealVector short_target(3);
+
+        full.gradient(short_loc, short_target);
+        no_bias.gradient(hl, target);
+        for(int i = 0; i < 3; ++i) {
+            CHECK(target.coeff(i) == short_target.coeff(i));
+        }
+        CHECK(target.coeff(3) == 0);
+
+        full.hessian_times_direction(short_loc, short_dir, short_target);
+        target = DenseRealVector::Random(4);
+        no_bias.hessian_times_direction(hl, dir, target);
+        for(int i = 0; i < 3; ++i) {
+            CHECK(target.coeff(i) == short_target.coeff(i));
+        }
+        CHECK(target.coeff(3) == 0);
     }
 }
 
@@ -181,51 +229,6 @@ TEST_CASE("l2-reg") {
     for(int i = 0; i < target.size(); ++i) {
         CHECK(target.coeff(i) == 1.0);
     }
-}
-
-void verify_line_search(objective::Objective& reg) {
-    DenseRealVector loc = make_vec({1.0, 2.0, -3.0, 0.0});
-    DenseRealVector dir = make_vec({3.0, -1.0, 2.0, 1.0});
-
-    reg.project_to_line(HashVector{loc}, dir);
-
-    for(real_t t : {-1.2, 0.1, 0.5, 0.8, 2.5}) {
-        real_t predict = reg.lookup_on_line(t);
-        real_t actual = reg.value(HashVector{loc + t*dir});
-        CHECK(predict == doctest::Approx(actual));
-    }
-}
-
-void verify_bias(objective::Objective& full, objective::Objective& no_bias) {
-    DenseRealVector loc = make_vec({1.0, 0.05, -3.0, 0.0});
-    DenseRealVector dir = make_vec({3.0, -1.0, 2.0, 1.0});
-    HashVector hl{loc};
-
-    // short versions
-    HashVector short_loc{loc.topRows(3)};
-    DenseRealVector short_dir{dir.topRows(3)};
-
-    // short on full objective
-    real_t reference = full.value(short_loc);
-    CHECK(no_bias.value(hl) == doctest::Approx(reference));
-
-    DenseRealVector target = DenseRealVector::Random(4);
-    DenseRealVector short_target(3);
-
-    full.gradient(short_loc, short_target);
-    no_bias.gradient(hl, target);
-    for(int i = 0; i < 3; ++i) {
-        CHECK(target.coeff(i) == short_target.coeff(i));
-    }
-    CHECK(target.coeff(3) == 0);
-
-    full.hessian_times_direction(short_loc, short_dir, short_target);
-    target = DenseRealVector::Random(4);
-    no_bias.hessian_times_direction(hl, dir, target);
-    for(int i = 0; i < 3; ++i) {
-        CHECK(target.coeff(i) == short_target.coeff(i));
-    }
-    CHECK(target.coeff(3) == 0);
 }
 
 TEST_CASE("l2 line-search") {
@@ -362,3 +365,5 @@ TEST_CASE("elastic bias") {
     ElasticNetRegularizer bias(1.0, 1.0, 0.7,true);
     verify_bias(full, bias);
 }
+
+#endif

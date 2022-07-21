@@ -6,6 +6,8 @@
 #include "parallel/numa.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/fmt.h"
+#include "utils/throw_error.h"
+#include "config.h"
 #include <numa.h>
 #include <numaif.h>
 #include <thread>
@@ -30,50 +32,45 @@ namespace {
 
     int lookup_numa_node(const void* ptr) {
         int numa_node = -1;
-        get_mempolicy(&numa_node, nullptr, 0, (void*)ptr, MPOL_F_NODE | MPOL_F_ADDR);
+        get_mempolicy(&numa_node, nullptr, 0, const_cast<void*>(ptr), MPOL_F_NODE | MPOL_F_ADDR); // NOLINT(cppcoreguidelines-pro-type-const-cast)
         return numa_node;
     }
 
     template<class F>
     void handle_cpu_set(std::fstream& source, F&& action) {
-        char buffer[512];
-        source.getline(buffer, sizeof(buffer));
-        bitmask* shared = numa_parse_cpustring_all(buffer);
+        std::string buffer;
+        std::getline(source, buffer);
+        bitmask* shared = numa_parse_cpustring_all(buffer.c_str());
         for(int i = 0; i < numa_num_possible_cpus(); ++i) {
             if (numa_bitmask_isbitset(shared, i)) {
-                action(i);
+                action(cpu_id_t{i});
             }
         }
         numa_free_cpumask(shared);
     }
 
     template<class F>
-    void for_each_sibling(int core, F&& action) {
-        char buffer[512];
-        auto end = fmt::format_to_n(buffer, sizeof(buffer),
-                                    "/sys/devices/system/cpu/cpu{}/topology/thread_siblings_list", core);
-        *end.out = '\0';
-        std::fstream topology_file(buffer, std::fstream::in);
+    void for_each_sibling(cpu_id_t core, F&& action) {
+        std::string file_name = fmt::format("/sys/devices/system/cpu/cpu{}/topology/thread_siblings_list",
+                                            core.to_index());
+        std::fstream topology_file(file_name, std::fstream::in);
         if(!topology_file.is_open()) {
-            spdlog::error("Could not open topology file '{}'", buffer);
+            spdlog::error("Could not open topology file '{}'", file_name);
         }
         handle_cpu_set(topology_file, std::forward<F>(action));
     }
 
     template<class F>
-    void for_each_shared_cache_sibling(int core, F&& action) {
-        char file_name[512];
-        for(int index = 0; index < 10; ++index) {
-            auto end = fmt::format_to_n(file_name, sizeof(file_name),
-                                        "/sys/devices/system/cpu/cpu{}/cache/index{}/shared_cpu_list",
-                                        core, index);
-            *end.out = '\0';
+    void for_each_shared_cache_sibling(cpu_id_t core, F&& action) {
+        constexpr const int MAX_CACHE_LEVELS = 10;
+        for(int index = 0; index < MAX_CACHE_LEVELS; ++index) {
+            std::string file_name = fmt::format("/sys/devices/system/cpu/cpu{}/cache/index{}/shared_cpu_list",
+                                                core.to_index(), index);
             std::fstream topology_file(file_name, std::fstream::in);
             if (!topology_file.is_open()) {
                 return;     // ok, we've handled the last cache
             }
             handle_cpu_set(topology_file, std::forward<F>(action));
-
         }
     }
 }
@@ -97,7 +94,7 @@ void NUMAReplicatorBase::make_copies() {
         m_Copies.resize(numa_node_count());
 
         for(int i = 0; i < numa_node_count(); ++i) {
-            if(!numa_bitmask_isbitset(numa_all_nodes_ptr, i)) {
+            if(numa_bitmask_isbitset(numa_all_nodes_ptr, i) == 0) {
                 spdlog::warn("NUMA node {} is disabled, no local data copy was created", i);
                 continue;
             }
@@ -121,15 +118,15 @@ const std::any& NUMAReplicatorBase::access_local() const {
 
 namespace {
     // sets the cpu affinity of the current thread to i
-    bool set_thread_affinity(int i) {
+    bool set_thread_affinity(cpu_id_t cpu) {
         // first, we set the current thread to CPU `i`
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
-        CPU_SET(i, &cpuset);
+        CPU_SET(cpu.to_index(), &cpuset);
         int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
 
         if (rc != 0) {
-            spdlog::error("Error fixing thread {} to core {}: {}\n", pthread_self(), i, strerror(rc));
+            spdlog::error("Error fixing thread {} to core {}: {}\n", pthread_self(), cpu.to_index(), strerror(rc));
             return false;
         }
         return true;
@@ -137,20 +134,20 @@ namespace {
 
     class NodeData {
     public:
-        explicit NodeData(int id) : ID(id) {
+        explicit NodeData(int id) : m_ID(id) {
         }
 
-        [[nodiscard]] int get_id() const {
-            return ID;
+        [[nodiscard]] numa_node_id_t get_id() const {
+            return m_ID;
         }
 
-        void add_cpu(int id) {
-            CPUs.push_back(id);
-            LoadIndicator.push_back(0);
+        void add_cpu(cpu_id_t cpu_id) {
+            m_CPUs.push_back(cpu_id);
+            m_LoadIndicator.push_back(0);
         }
 
         [[nodiscard]] bool empty() const {
-            return CPUs.empty();
+            return m_CPUs.empty();
         }
 
         [[nodiscard]] int num_threads() const {
@@ -158,42 +155,42 @@ namespace {
         }
 
         [[nodiscard]] int max_load() const {
-            auto max_el = std::max_element(begin(LoadIndicator), end(LoadIndicator));
+            auto max_el = std::max_element(begin(m_LoadIndicator), end(m_LoadIndicator));
             return *max_el;
         }
 
-        [[nodiscard]] int place_thread() {
-            auto min_core = std::min_element(begin(LoadIndicator), end(LoadIndicator));
-            int index = std::distance(begin(LoadIndicator), min_core);
-            LoadIndicator[index] += 10;
-            for_each_sibling(CPUs[index], [&](int sibling) {
-                auto found = std::find(begin(CPUs), end(CPUs), sibling);
-                if(found == end(CPUs)) {
+        [[nodiscard]] cpu_id_t place_thread() {
+            auto min_core = std::min_element(begin(m_LoadIndicator), end(m_LoadIndicator));
+            long index = std::distance(begin(m_LoadIndicator), min_core);
+            m_LoadIndicator[index] += COST_PLACE_THREAD;
+            for_each_sibling(m_CPUs[index], [&](cpu_id_t sibling) {
+                auto found = std::find(begin(m_CPUs), end(m_CPUs), sibling);
+                if(found == end(m_CPUs)) {
                     return;         // I guess this means that we are not allowed to run on the sibling, so this is fine
                 }
-                *(begin(LoadIndicator) + std::distance(begin(CPUs), found)) += 5;
+                *(begin(m_LoadIndicator) + std::distance(begin(m_CPUs), found)) += COST_PLACE_HYPER_THREAD;
             });
 
-            for_each_shared_cache_sibling(CPUs[index], [&](int sibling) {
-                auto found = std::find(begin(CPUs), end(CPUs), sibling);
-                if(found == end(CPUs)) {
+            for_each_shared_cache_sibling(m_CPUs[index], [&](cpu_id_t sibling) {
+                auto found = std::find(begin(m_CPUs), end(m_CPUs), sibling);
+                if(found == end(m_CPUs)) {
                     return;         // I guess this means that we are not allowed to run on the sibling, so this is fine
                 }
-                *(begin(LoadIndicator) + std::distance(begin(CPUs), found)) += 1;
+                *(begin(m_LoadIndicator) + std::distance(begin(m_CPUs), found)) += 1;
             });
 
             ++NumThreads;
-            return CPUs[index];
+            return m_CPUs[index];
         }
     private:
-        int ID;
-        std::vector<int> CPUs;              //!< Vector of CPU ids that are on this NUMA node
+        numa_node_id_t m_ID;
+        std::vector<cpu_id_t> m_CPUs;              //!< Vector of CPU ids that are on this NUMA node
         /*!
          * \brief How much work have we placed on that CPU.
          * \details Currently uses the following heuristic: Placing a thread on the core increases the load by a value
          * of 10, and increases the load of any core that is shared by hyperthreading by 5.
          */
-        std::vector<int> LoadIndicator;
+        std::vector<int> m_LoadIndicator;
 
         int NumThreads = 0;
     };
@@ -214,21 +211,21 @@ namespace {
                 nodes_avail.emplace_back(i);
             }
             for(int i = 0; i < numa_num_possible_cpus(); ++i) {
-                if (numa_bitmask_isbitset(numa_all_cpus_ptr, i)) {
+                if (numa_bitmask_isbitset(numa_all_cpus_ptr, i) != 0) {
                     // OK, CPU is available
                     int node = numa_node_of_cpu(i);
-                    if(!numa_bitmask_isbitset(numa_all_nodes_ptr, node)) {
+                    if(numa_bitmask_isbitset(numa_all_nodes_ptr, node) == 0) {
                         spdlog::warn("Node {} of CPU {} is not available.", node, i);
                     }
-                    nodes_avail.at(node).add_cpu(i);
+                    nodes_avail.at(node).add_cpu(cpu_id_t{i});
                 }
             }
 
         } else {
             // if we don't have numa available, assume all CPUs are available and correspond to node 0
             nodes_avail.emplace_back(0);
-            for(int i = 0; i < std::thread::hardware_concurrency(); ++i) {
-                nodes_avail.at(0).add_cpu(i);
+            for(unsigned i = 0; i < std::thread::hardware_concurrency(); ++i) {
+                nodes_avail.at(0).add_cpu(cpu_id_t{i});
             }
         }
 
@@ -240,32 +237,36 @@ namespace {
     }
 }
 
-ThreadDistributor::ThreadDistributor(int num_threads, std::shared_ptr<spdlog::logger> logger) :
+ThreadDistributor::ThreadDistributor(long num_threads, std::shared_ptr<spdlog::logger> logger) :
         m_Logger(std::move(logger))
 {
+    if(num_threads < 0) {
+        THROW_EXCEPTION(std::invalid_argument, "Negative number of threads {} given!", num_threads)
+    }
     std::vector<NodeData> nodes_avail = get_available_nodes();
 
     if(m_Logger) {
         m_Logger->info("Distributing {} threads to {} NUMA nodes.",
                        num_threads, nodes_avail.size());
     }
-    while(m_TargetCPUs.size() < num_threads) {
+    while(m_TargetCPUs.size() < static_cast<std::size_t>(num_threads)) {
         for(auto& node : nodes_avail) {
             m_TargetCPUs.push_back(node.place_thread());
         }
     }
 
     if(m_Logger) {
-        for (auto &node : nodes_avail) {
-            m_Logger->info("Node {}: {} threads, load {}", node.get_id(), node.num_threads(), node.max_load());
+        for (auto& node : nodes_avail) {
+            m_Logger->info("Node {}: {} threads, load {}", node.get_id().to_index(), node.num_threads(), node.max_load());
         }
     }
 }
 
-void ThreadDistributor::pin_this_thread(int thread_id) {
-    if(!set_thread_affinity(m_TargetCPUs.at(thread_id))) {
+void ThreadDistributor::pin_this_thread(thread_id_t thread_id) {
+    auto target_cpu = m_TargetCPUs.at(thread_id.to_index());
+    if(!set_thread_affinity(target_cpu)) {
         throw std::runtime_error(fmt::format("Could not pin thread {} to CPU {}",
-                                             pthread_self(), m_TargetCPUs.at(thread_id)));
+                                             pthread_self(), target_cpu.to_index()));
     }
 
     // if we successfully pinned a thread to a CPU, we also pin its memory allocation to the corresponding
@@ -276,8 +277,8 @@ void ThreadDistributor::pin_this_thread(int thread_id) {
 
     if(m_Logger) {
         m_Logger->info("Pinned thread {} ({}) to Core {} on Node {}",
-                       thread_id, pthread_self(),
-                       m_TargetCPUs.at(thread_id),
+                       thread_id.to_index(), pthread_self(),
+                       target_cpu.to_index(),
                        numa_available() >= 0 ? current_numa_node() : -1);
     }
 }

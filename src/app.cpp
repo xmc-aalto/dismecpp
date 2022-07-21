@@ -34,8 +34,8 @@ void DataProcessing::setup_data_args(CLI::App& app) {
     app.add_option("--label-file", LabelFile, "For SLICE-type datasets, this specifies where the labels can be found")->check(CLI::ExistingFile);
 
 
-    auto hash_option = app.add_flag("--hash-features", "If this Flag is given, then feature hashing is performed.");
-    auto bucket_option = app.add_option("--hash-buckets", HashBuckets, "Number of buckets for each hash function when feature hashing is enabled.")
+    auto* hash_option = app.add_flag("--hash-features", "If this Flag is given, then feature hashing is performed.");
+    auto* bucket_option = app.add_option("--hash-buckets", HashBuckets, "Number of buckets for each hash function when feature hashing is enabled.")
         ->needs(hash_option)->check(CLI::PositiveNumber);
     app.add_option("--hash-repeat", HashRepeats, "Number of hash functions to use for feature hashing.")
         ->needs(hash_option)->default_val(32)->check(CLI::PositiveNumber);

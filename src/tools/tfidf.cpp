@@ -12,7 +12,7 @@
 using namespace dismec;
 
 void apply_tfidf(SparseFeatures& features, const DenseRealVector& idf) {
-    auto last = features.innerIndexPtr() + features.nonZeros();
+    auto* last = features.innerIndexPtr() + features.nonZeros();
     for(int row = 0; row < features.rows(); ++row) {
         for(auto it = SparseFeatures::InnerIterator(features, row); it; ++it) {
             it.valueRef() = (1 + std::log(it.valueRef())) * idf.coeff(it.col());
@@ -32,7 +32,7 @@ int main(int argc, const char** argv) {
     CLI::App app{"tfidf"};
     app.add_option("train-set", TrainSetFile,
                    "The training dataset will be loaded from here.")->required()->check(CLI::ExistingFile);
-    auto test_set_opt = app.add_option("--test-set", TestSetFile,
+    auto* test_set_opt = app.add_option("--test-set", TestSetFile,
                    "The test dataset will be loaded from here. "
                    "If given, it will use the idf as calculated on the training set")->check(CLI::ExistingFile);
     app.add_option("out", OutputTrain,

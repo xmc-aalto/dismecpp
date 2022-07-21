@@ -10,7 +10,6 @@
 #include "data/data.h"
 #include "objective/objective.h"
 #include "utils/hash_vector.h"
-#include <limits>
 
 
 using namespace dismec::init;

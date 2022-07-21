@@ -154,7 +154,7 @@ void io::model::load_sparse_weights_txt(std::istream& source, Model& target) {
                 if (index >= num_features || index < 0) {
                     THROW_ERROR("Encountered index {:5} with value {} for weights of label {:6}. Number of features "
                                 "was specified as {}.", index, value, label.to_index(), num_features);
-                };
+                }
                 sparse_vec.insertBack(index) = value;
             });
         } catch (const std::exception& error) {

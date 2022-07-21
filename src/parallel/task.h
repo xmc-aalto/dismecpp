@@ -6,22 +6,9 @@
 #ifndef DISMEC_TASK_H
 #define DISMEC_TASK_H
 
-#include "utils/opaque_int.h"
+#include "thread_id.h"
 
 namespace dismec::parallel {
-    /*!
-
-     * \brief Strong typedef for an int to signify a thread id.
-     * \details This value represents an id for a thread. These IDs
-     * are only unique within a single run, and can be used (with the
-     * `to_index()` method to manage thread-local data.
-     * \internal Implemented as a subclass of `opaque_int_type` instead of a typedef
-     * because this makes forward declarations easier.
-     */
-    class thread_id_t : public opaque_int_type<thread_id_t> {
-        using opaque_int_type::opaque_int_type;
-    };
-
     /*!
      * \brief Base class for all parallelized operations
      * \details Any computation that should be parallelized using

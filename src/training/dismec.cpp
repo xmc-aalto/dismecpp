@@ -76,7 +76,7 @@ std::unique_ptr<solvers::Minimizer> DiSMECTraining::make_minimizer() const {
 
 void DiSMECTraining::update_minimizer(solvers::Minimizer& base_minimizer, label_id_t label_id) const
 {
-    auto minimizer = dynamic_cast<solvers::NewtonWithLineSearch*>(&base_minimizer);
+    auto* minimizer = dynamic_cast<solvers::NewtonWithLineSearch*>(&base_minimizer);
     if(!minimizer)
         throw std::logic_error("Could not cast minimizer to <NewtonWithLineSearch>");
 
@@ -99,11 +99,11 @@ DiSMECTraining::DiSMECTraining(std::shared_ptr<const DatasetBase> data,
         TrainingSpec(std::move(data)),
         m_NewtonSettings( std::move(hyper_params) ),
         m_Weighting( std::move(weighting) ),
+        m_UseSparseModel( use_sparse ),
         m_InitStrategy( std::move(init) ),
         m_PostProcessor( std::move(post_proc) ),
         m_FeatureReplicator(get_data().get_features() ),
         m_StatsGather( std::move(gatherer) ),
-        m_UseSparseModel( use_sparse ),
         m_Regularizer( regularizer ),
         m_Loss( loss )
 {
@@ -120,7 +120,7 @@ DiSMECTraining::DiSMECTraining(std::shared_ptr<const DatasetBase> data,
 }
 
 void DiSMECTraining::update_objective(objective::Objective& base_objective, label_id_t label_id) const {
-    auto objective = dynamic_cast<objective::LinearClassifierBase*>(&base_objective);
+    auto* objective = dynamic_cast<objective::LinearClassifierBase*>(&base_objective);
     if(!objective)
         throw std::logic_error("Could not cast objective to <LinearClassifierBase>");
 

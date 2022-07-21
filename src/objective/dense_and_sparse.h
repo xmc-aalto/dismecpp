@@ -30,6 +30,9 @@ namespace dismec::objective {
         void update_features(const DenseFeatures& dense, const SparseFeatures& sparse);
 
     protected:
+        /// actual implementation of `num_variables()`. We need this non-virtual function to be called during the constructor
+        [[nodiscard]] long get_num_variables() const noexcept;
+
         /*!
          * \brief Calculates the vector of feature matrix times weights `w`
          * \param w The weight vector with which to multiply.

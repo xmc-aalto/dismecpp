@@ -11,6 +11,7 @@
 #include <functional>
 #include <any>
 #include "spdlog/spdlog.h"
+#include "thread_id.h"
 
 namespace dismec::parallel {
 
@@ -116,10 +117,10 @@ namespace dismec::parallel {
      */
     class ThreadDistributor {
     public:
-        ThreadDistributor(int num_threads, std::shared_ptr<spdlog::logger> = {});
-        void pin_this_thread(int thread_id);
+        ThreadDistributor(long num_threads, std::shared_ptr<spdlog::logger> = {});
+        void pin_this_thread(thread_id_t thread_id);
     private:
-        std::vector<int> m_TargetCPUs;       //!< List of CPUs to which the threads will be assigned
+        std::vector<cpu_id_t> m_TargetCPUs;       //!< List of CPUs to which the threads will be assigned
 
         std::shared_ptr<spdlog::logger> m_Logger;
     };

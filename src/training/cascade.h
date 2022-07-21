@@ -23,7 +23,7 @@ namespace dismec {
                         std::shared_ptr<TrainingStatsGatherer> gatherer,
                         std::shared_ptr<const std::vector<std::vector<long>>> shortlist = nullptr);
 
-        long num_features() const { return m_NumFeatures; }
+        long num_features() const override { return m_NumFeatures; }
 
         [[nodiscard]] std::shared_ptr<objective::Objective> make_objective() const override;
 

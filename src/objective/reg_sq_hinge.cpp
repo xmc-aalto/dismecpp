@@ -17,7 +17,7 @@ using namespace dismec::l2_reg_sq_hinge_detail;
 
 namespace {
     using dismec::stats::stat_id_t;
-    stat_id_t STAT_GRAD_SPARSITY{8};
+    constexpr const stat_id_t STAT_GRAD_SPARSITY{8};
 }
 
 Regularized_SquaredHingeSVC::Regularized_SquaredHingeSVC(std::shared_ptr<const GenericFeatureMatrix> X,
@@ -70,11 +70,12 @@ void Regularized_SquaredHingeSVC::gradient_and_pre_conditioner_tpl(const HashVec
 
     const auto& ft = features();
 
-    for (int i = 0; i < m_MVPos.size(); ++i)
+    long shortlist_size = to_long(m_MVPos.size());
+    for (long i = 0; i < shortlist_size; ++i)
     {
         int pos = m_MVPos[i];
-        real_t cost = 2.0 * cost_vec[pos];
-        real_t vi = - cost * label_vec.coeff(pos) * m_MVVal[i];
+        real_t cost = real_t{2.0} * cost_vec[pos];
+        real_t vi = - cost * static_cast<real_t>(label_vec.coeff(pos)) * m_MVVal[i];
         for (FastSparseRowIter it(ft, pos); it; ++it)
         {
             if constexpr (calc_grad) {

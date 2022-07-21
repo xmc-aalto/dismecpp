@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <iosfwd>
 
 namespace dismec {
     /*!
@@ -63,6 +64,11 @@ namespace dismec {
     template<class Tag, class T>
     inline constexpr bool operator>=(opaque_int_type<Tag, T> a, opaque_int_type<Tag, T> b) {
         return a.to_index() >= b.to_index();
+    }
+
+    template<class Tag, class T>
+    std::ostream& operator<<(std::ostream& stream, opaque_int_type<Tag, T> a) {
+        return stream << a.to_index();
     }
 }
 

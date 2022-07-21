@@ -11,11 +11,10 @@
  */
 
 #include <variant>
+#include "config.h"
 #include "utils/type_helpers.h"
 
 namespace dismec {
-    using real_t = float;
-
     namespace types {
         template<class T>
         class GenericMatrixRef;

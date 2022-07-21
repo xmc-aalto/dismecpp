@@ -11,7 +11,7 @@
 using namespace dismec;
 
 
-const char* TEST_FILE = \
+constexpr const char* TEST_FILE = \
 R"(4 10 5
 2,3 4:1.0 5:-0.5 8:0.25
 0 2:1.0

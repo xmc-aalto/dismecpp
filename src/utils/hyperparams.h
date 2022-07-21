@@ -86,6 +86,10 @@ namespace dismec
 
         HyperParameterBase() = default;
         virtual ~HyperParameterBase() = default;
+        HyperParameterBase(const HyperParameterBase&) = default;
+        HyperParameterBase(HyperParameterBase&&) = default;
+        HyperParameterBase& operator=(HyperParameterBase&&) = default;
+        HyperParameterBase& operator=(const HyperParameterBase&) = default;
 
         /// updates the value of the hyper-parameter with the given `name`. If the type
         /// does not match the internal hyper-parameter type, an exception is throw.

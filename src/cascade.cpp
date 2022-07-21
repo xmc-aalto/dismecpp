@@ -112,7 +112,7 @@ void TrainingProgram::setup_save_cmdline()
 
     app.add_option("--weight-culling", SaveOptions.Culling,
                    "When saving in a sparse format, any weight lower than this will be omitted.")->check(CLI::NonNegativeNumber);
-                   ;
+
     app.add_option("--save-precision", SaveOptions.Precision,
                    "The number of digits to write for real numbers in text file format.")->check(CLI::NonNegativeNumber);
 

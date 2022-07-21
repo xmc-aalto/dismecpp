@@ -18,8 +18,8 @@ namespace {
     stats::stat_id_t STAT_ITER_TIME{8};
     stats::stat_id_t STAT_PROGRESS{11};
 */
-    dismec::stats::tag_id_t TAG_ITERATION{0};
-};
+    constexpr const dismec::stats::tag_id_t TAG_ITERATION{0};
+}
 
 
 

@@ -12,7 +12,7 @@
 using namespace dismec;
 
 PropensityModel::PropensityModel(const DatasetBase* data, double a, double b) :
-    m_A(a), m_B(b), m_Data(data)
+    m_Data(data), m_A(a), m_B(b)
 {
     if(!m_Data) {
         throw std::invalid_argument("data must not be nullptr");

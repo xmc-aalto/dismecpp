@@ -54,7 +54,7 @@ namespace dismec
          * \details This is a non-modifying operation, so the id remains
          * unchanged.
          */
-        const DenseRealVector& get() const { return m_Data; }
+        [[nodiscard]] const DenseRealVector& get() const { return m_Data; }
         //! constant access to vector data.
         const DenseRealVector* operator->() const { return &m_Data; }
 
@@ -73,7 +73,7 @@ namespace dismec
          * \endcode
          * \return A \ref VectorHash() corresponding to this vector.
          */
-        VectorHash hash() const;
+        [[nodiscard]] VectorHash hash() const;
 
         /*!
          * \brief Update the contents of this vector.

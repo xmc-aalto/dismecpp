@@ -15,14 +15,16 @@ using namespace dismec;
 
 namespace {
     constexpr const char MAGIC[] = {'\x93', 'N', 'U', 'M', 'P', 'Y', '\x03', '\x00'};
+    constexpr const int MAGIC_SIZE = 6;
+    constexpr const unsigned NPY_PADDING = 64u;
 }
 
 bool io::is_npy(std::istream& source) {
-    char buffer[6];
+    char buffer[MAGIC_SIZE];
     auto current_position = source.tellg();
     if(auto num_read = source.readsome(buffer, sizeof(buffer)); num_read != sizeof(buffer)) {
         THROW_ERROR("Error when trying to read magic bytes. Read on {} bytes.", num_read);
-    };
+    }
     source.seekg(current_position);
     return (std::memcmp(buffer, MAGIC, sizeof(buffer)) == 0);
 }
@@ -30,17 +32,17 @@ bool io::is_npy(std::istream& source) {
 void io::write_npy_header(std::streambuf& target, std::string_view description) {
     target.sputn(MAGIC, sizeof(MAGIC));
     std::size_t total_length = sizeof(MAGIC) + sizeof(std::uint32_t) + description.size() + 1;
-    unsigned padding = 64u - total_length % 64u;
+    unsigned padding = NPY_PADDING - total_length % NPY_PADDING;
 
     std::uint32_t header_length = description.size() + padding + 1;
     target.sputn(reinterpret_cast<const char*>(&header_length), sizeof(header_length));
     target.sputn(description.data(), description.size());
-    for(int i = 0; i < padding; ++i) {
+    for(unsigned i = 0; i < padding; ++i) {
         target.sputc('\x20');
     }
     if(target.sputc('\n') != '\n') {
         THROW_ERROR("Could not write terminating newline to npy header");
-    };
+    }
 }
 
 std::string io::make_npy_description(std::string_view dtype_desc, bool column_major, std::size_t size) {
@@ -82,20 +84,20 @@ namespace {
             std::uint32_t header_length;
             read_raw(header_length);
             return header_length;
-        } else if (major == 1) {
+        }
+        if (major == 1) {
             std::uint16_t short_header_length;
             read_raw(short_header_length);
             return short_header_length;
-        } else {
-            THROW_ERROR("Unknown npy file format version {}.{} -- {}", major, minor, source.pubseekoff(0, std::ios_base::cur, std::ios_base::in));
         }
+        THROW_ERROR("Unknown npy file format version {}.{} -- {}", major, minor, source.pubseekoff(0, std::ios_base::cur, std::ios_base::in));
     };
 
     std::pair<std::string_view, std::string_view> read_key_value(std::string_view source) {
         // This function parses a single element from a python dict literal
 
         auto skip_ws = [&source](int position){
-            while(std::isspace(source[position]) && position < source.length()) {
+            while(std::isspace(source[position]) != 0 && position < source.length()) {
                 ++position;
             }
 
@@ -135,8 +137,8 @@ namespace {
             THROW_ERROR("Missing feature");
         }
 
-        char openers[] = {'"', '\'', '(', '[', '{'};
-        char closers[] = {'"', '\'', ')', ']', '}'};
+        const char openers[] = {'"', '\'', '(', '[', '{'};
+        const char closers[] = {'"', '\'', ')', ']', '}'};
 
         // to keep the code simple, we do not support nesting or escaping of
         // delimiters. For the intended use case, that should be enough, but
@@ -191,7 +193,10 @@ namespace {
         bool has_order = false;
         bool has_shape = false;
         for(int i = 0; i < 3; ++i) {
-            auto[key, value] = read_key_value(view);
+            // can't use structured bindings here, because apparently they cannot be captured in the THROW_ERROR lambda
+            auto kv = read_key_value(view);
+            auto key = kv.first;
+            auto value = kv.second;
             view = view.substr(value.end() - view.begin() + 1);
 
             if(key == "descr") {
@@ -219,9 +224,9 @@ namespace {
                     THROW_ERROR("Expected comma in tuple definition");
                 }
 
-                char* endptr;
+                const char* endptr = nullptr;
                 errno = 0;
-                result.Rows = std::strtol( value.begin() + 1, &endptr, 10);
+                result.Rows = io::parse_long( value.begin() + 1, &endptr);
                 if(errno != 0 || endptr == value.begin() + 1) {
                     THROW_ERROR("error while trying to parse number for size");
                 }
@@ -229,7 +234,7 @@ namespace {
                     THROW_ERROR("Number of rows cannot be negative. Got {}", result.Rows);
                 }
 
-                result.Cols = std::strtol( value.begin() + sep + 1, &endptr, 10);
+                result.Cols = io::parse_long( value.begin() + sep + 1, &endptr);
                 if(errno != 0) {
                     THROW_ERROR("error while trying to parse number for size");
                 }
@@ -246,8 +251,8 @@ namespace {
         }
 
         bool closed_dict = false;
-        for(auto& c : view) {
-            if(std::isspace(c)) continue;
+        for(const auto& c : view) {
+            if(std::isspace(c) != 0) continue;
             if(c == '}' && !closed_dict) {
                 closed_dict = true;
                 continue;
@@ -272,9 +277,9 @@ namespace {
 }
 #include <iostream>
 io::NpyHeaderData io::parse_npy_header(std::streambuf& source) {
-    char magic[6];
-    source.sgetn(magic, 6);
-    for(int i = 0; i < 6; ++i) {
+    char magic[MAGIC_SIZE];
+    source.sgetn(magic, MAGIC_SIZE);
+    for(int i = 0; i < MAGIC_SIZE; ++i) {
         if(magic[i] != MAGIC[i]) {
             THROW_ERROR("Magic bytes mismatch");
         }
@@ -347,19 +352,19 @@ TEST_CASE("header length test") {
     std::stringstream src;
 
     SUBCASE("read valid length v2/3") {
-        src.str(std::string("\x03\x00s\x00\x00\x00", 6));
+        src.str(std::string("\x03\x00s\x00\x00\x00", MAGIC_SIZE));
         CHECK(read_header_length(*src.rdbuf()) == 's');
         CHECK(src.rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::in) == 6);
     }
 
     SUBCASE("read valid length v1") {
-        src.str(std::string("\x01\x00s\x00\x00\x00", 6));
+        src.str(std::string("\x01\x00s\x00\x00\x00", MAGIC_SIZE));
         CHECK(read_header_length(*src.rdbuf()) == 's');
         CHECK(src.rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::in) == 4);
     }
 
     SUBCASE("invalid version") {
-        src.str(std::string("\x04\x00s\x00\x00\x00", 6));
+        src.str(std::string("\x04\x00s\x00\x00\x00", MAGIC_SIZE));
         CHECK_THROWS(read_header_length(*src.rdbuf()));
     }
 

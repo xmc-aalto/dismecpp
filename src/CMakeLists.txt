@@ -51,13 +51,16 @@ set(LIB_SRC
         training/cascade.cpp
         training/init/numpy.cpp)
 
-set(TESTS_SRC io/test.cpp objective/reg_sg_hinge_test.cpp)
+set(TESTS_SRC
+        io/test.cpp
+        io/common_test.cpp
+        objective/reg_sg_hinge_test.cpp)
 
 add_library(libdismec_config INTERFACE)
 target_compile_features(libdismec_config INTERFACE cxx_std_17)
 #target_compile_definitions(libdismec INTERFACE EIGEN_USE_BLAS)
 target_include_directories(libdismec_config INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}  ${CMAKE_CURRENT_SOURCE_DIR}/../deps/doctest/doctest)
-target_link_libraries(libdismec_config INTERFACE Eigen3::Eigen Threads::Threads spdlog::spdlog Boost::boost ${BLAS_LIBRARIES} nlohmann_json::nlohmann_json numa)
+target_link_libraries(libdismec_config INTERFACE Eigen3::Eigen Threads::Threads spdlog::spdlog Boost::boost ${BLAS_LIBRARIES} nlohmann_json::nlohmann_json numa atomic)
 
 # on GCC-8, we need to add a link command when using <filesystem>
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")

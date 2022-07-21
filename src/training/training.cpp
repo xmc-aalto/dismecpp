@@ -127,7 +127,7 @@ TrainingResult dismec::run_training(parallel::ParallelRunner& runner, std::share
 
     real_t total_loss = 0.0;
     real_t total_grad = 0.0;
-    for(auto& r : task.get_results()) {
+    for(const auto& r : task.get_results()) {
         total_loss += r.FinalValue;
         total_grad += r.FinalGrad;
     }

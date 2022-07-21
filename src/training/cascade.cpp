@@ -19,7 +19,7 @@ namespace {
     public:
         CombinedWeightInitializer( std::unique_ptr<init::WeightsInitializer> di,  std::unique_ptr<init::WeightsInitializer> si,
                                    long num_dense_features) :
-            m_DenseInit(std::move(di)), m_SparseInit(std::move(si)), m_NumDenseFeatures(num_dense_features) {
+            m_NumDenseFeatures(num_dense_features), m_DenseInit(std::move(di)), m_SparseInit(std::move(si)) {
 
         }
         void get_initial_weight(label_id_t label_id, Eigen::Ref<DenseRealVector> target,
@@ -50,7 +50,7 @@ std::unique_ptr<solvers::Minimizer> CascadeTraining::make_minimizer() const {
 }
 
 void CascadeTraining::update_minimizer(solvers::Minimizer& base_minimizer, label_id_t label_id) const {
-    auto minimizer = dynamic_cast<solvers::NewtonWithLineSearch*>(&base_minimizer);
+    auto* minimizer = dynamic_cast<solvers::NewtonWithLineSearch*>(&base_minimizer);
     if(!minimizer)
         throw std::logic_error("Could not cast minimizer to <NewtonWithLineSearch>");
 
@@ -63,7 +63,7 @@ void CascadeTraining::update_minimizer(solvers::Minimizer& base_minimizer, label
         std::size_t actual_num_neg = 0;
         const auto& shortlist = m_Shortlist->at(label_id.to_index());
         auto label_vec = get_data().get_labels(label_id);
-        for(auto& row : shortlist) {
+        for(const auto& row : shortlist) {
             if(label_vec->coeff(row)) {
                 ++actual_num_pos;
             } else {
@@ -77,7 +77,7 @@ void CascadeTraining::update_minimizer(solvers::Minimizer& base_minimizer, label
 }
 
 void CascadeTraining::update_objective(objective::Objective& base_objective, label_id_t label_id) const {
-    auto objective = dynamic_cast<objective::DenseAndSparseLinearBase*>(&base_objective);
+    auto* objective = dynamic_cast<objective::DenseAndSparseLinearBase*>(&base_objective);
     if(!objective)
         throw std::logic_error("Could not cast objective to <DenseAndSparseLinearBase>");
 
@@ -93,7 +93,7 @@ void CascadeTraining::update_objective(objective::Objective& base_objective, lab
         target_labels.resize(shortlist.size());
         auto label_vec = get_data().get_labels(label_id);
         long target_id = 0;
-        for(auto& row : shortlist) {
+        for(const auto& row : shortlist) {
             target_labels.coeffRef(target_id) = label_vec->coeff(row);
             ++target_id;
         }
@@ -140,16 +140,16 @@ CascadeTraining::CascadeTraining(std::shared_ptr<const DatasetBase> tfidf_data,
                                  std::shared_ptr<const std::vector<std::vector<long>>> shortlist) :
     TrainingSpec(std::move(tfidf_data)),
     m_NewtonSettings( std::move(hyper_params) ),
-    m_SparseInitStrategy( std::move(sparse_init) ),
-    m_DenseInitStrategy( std::move(dense_init) ),
-    m_PostProcessor( std::move(post_proc) ),
-    m_DenseReplicator(std::move(dense_data) ),
     m_SparseReplicator(get_data().get_features() ),
+    m_DenseReplicator(std::move(dense_data) ),
+    m_Shortlist( std::move(shortlist) ),
+    m_PostProcessor( std::move(post_proc) ),
+    m_DenseInitStrategy( std::move(dense_init) ),
+    m_SparseInitStrategy( std::move(sparse_init) ),
     m_StatsGather( std::move(gatherer) ),
     m_NumFeatures(m_SparseReplicator.get_local()->cols() + m_DenseReplicator.get_local()->cols()),
     m_DenseReg(dense_reg),
-    m_SparseReg(sparse_reg),
-    m_Shortlist( std::move(shortlist) )
+    m_SparseReg(sparse_reg)
     {
 
     // extract the base value of `epsilon` from the `hyper_params` object.

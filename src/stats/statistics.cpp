@@ -195,7 +195,7 @@ VectorReductionStat::VectorReductionStat(std::unique_ptr<Statistics> stat, std::
     } else {
         throw std::runtime_error("Unknown reduction operation");
     }
-};
+}
 
 void VectorReductionStat::record(const DenseRealVector& value) {
     m_Target->record(real_t{m_Reduction(value)});

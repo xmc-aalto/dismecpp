@@ -44,7 +44,8 @@ SparseFeatures dismec::augment_features_with_bias(const SparseFeatures& features
 DenseFeatures dismec::augment_features_with_bias(const DenseFeatures & features, real_t bias) {
     DenseFeatures new_features{features.rows(), features.cols() + 1};
     new_features.leftCols(features.cols()) = features;
-    new_features.col(features.cols()).setOnes();
+    new_features.col(features.cols()).setConstant(bias);
+    // TODO add a unit test for this!
     return new_features;
 }
 
@@ -60,8 +61,8 @@ DenseRealVector dismec::get_mean_feature(const SparseFeatures& features) {
     auto start = features.outerIndexPtr()[0];
     auto end = features.outerIndexPtr()[features.rows()];
 
-    auto* indices = features.innerIndexPtr();
-    auto* values = features.valuePtr();
+    const auto* indices = features.innerIndexPtr();
+    const auto* values = features.valuePtr();
     for(auto index = start; index < end; ++index) {
         auto col = indices[index];
         result[col] += values[index];
@@ -116,8 +117,8 @@ std::vector<long> dismec::count_features(const SparseFeatures& features) {
 
     // count the nonzero features
     // the outer index is the row (instance index), the inner index is the feature id
-    auto last = features.innerIndexPtr() + features.nonZeros();
-    for(auto start = features.innerIndexPtr(); start != last; ++start) {
+    const auto* last = features.innerIndexPtr() + features.nonZeros();
+    for(const auto* start = features.innerIndexPtr(); start != last; ++start) {
         counts[*start] += 1;
     }
     return counts;

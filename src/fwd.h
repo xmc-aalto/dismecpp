@@ -28,7 +28,7 @@ namespace dismec
 
     namespace model {
         class Model;
-        class PartialModelSpec;
+        struct PartialModelSpec;
     }
 
     namespace objective {
@@ -37,7 +37,7 @@ namespace dismec
 
     namespace solvers {
         class Minimizer;
-        class MinimizationResult;
+        struct MinimizationResult;
     }
 
     namespace init {

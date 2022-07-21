@@ -24,7 +24,7 @@ namespace dismec::io::prediction
      * \param indices The indices corresponding to the values.
      * \throws std::invalid_argument if the shape of `values` does not match `indices`.
      */
-    void save_sparse_predictions(path target,
+    void save_sparse_predictions(const path& target,
                                  const PredictionMatrix& values,
                                  const IndexMatrix& indices);
 
@@ -44,14 +44,14 @@ namespace dismec::io::prediction
     std::pair<IndexMatrix, PredictionMatrix> read_sparse_prediction(std::istream& source);
 
     /// \copydoc read_sparse_prediction()
-    std::pair<IndexMatrix, PredictionMatrix> read_sparse_prediction(path source_file);
+    std::pair<IndexMatrix, PredictionMatrix> read_sparse_prediction(const path& source);
 
     /*!
      * \brief Saves predictions as a dense txt matrix.
      * \param target Path to the file which will be created or overwritten, or output stream.
      * \param values Matrix with the results. Each row corresponds to an instance and each column to a label.
      */
-    void save_dense_predictions(path target, const PredictionMatrix& values);
+    void save_dense_predictions(const path& target, const PredictionMatrix& values);
 
     /// \copydoc save_dense_predictions()
     void save_dense_predictions(std::ostream& target, const PredictionMatrix& values);

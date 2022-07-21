@@ -6,7 +6,6 @@
 #include "generic_linear.h"
 #include "utils/eigen_generic.h"
 #include "utils/throw_error.h"
-#include "doctest.h"
 #include "stats/collection.h"
 #include "margin_losses.h"
 
@@ -15,7 +14,7 @@ using dismec::objective::GenericLinearClassifier;
 
 namespace {
     using dismec::stats::stat_id_t;
-    stat_id_t STAT_GRAD_SPARSITY{8};
+    constexpr const stat_id_t STAT_GRAD_SPARSITY{8};
 }
 
 real_t GenericLinearClassifier::value_unchecked(const HashVector& location) {
@@ -90,7 +89,7 @@ void GenericLinearClassifier::gradient_at_zero_unchecked(Eigen::Ref<DenseRealVec
 
     m_GenericInBuffer = DenseRealVector::Zero(labels().size());
     calculate_derivative(m_GenericInBuffer, labels(), m_GenericOutBuffer);
-    auto& cost_vector = costs();
+    const auto& cost_vector = costs();
     visit([&](const auto& features) {
         for (int pos = 0; pos < m_GenericOutBuffer.size(); ++pos) {
             if(real_t d = m_GenericOutBuffer.coeff(pos); d != 0) {
@@ -141,9 +140,9 @@ void GenericLinearClassifier::invalidate_labels() {
 GenericLinearClassifier::GenericLinearClassifier(std::shared_ptr<const GenericFeatureMatrix> X,
                                                             std::unique_ptr<Objective> regularizer)
         : LinearClassifierBase(std::move(X)),
-        m_Regularizer(std::move(regularizer)),
-        m_DerivativeBuffer(num_instances()), m_SecondDerivativeBuffer(num_instances()),
-        m_GenericOutBuffer(num_instances()), m_GenericInBuffer(num_instances())
+        m_SecondDerivativeBuffer(num_instances()),
+        m_DerivativeBuffer(num_instances()), m_GenericInBuffer(num_instances()),
+        m_GenericOutBuffer(num_instances()), m_Regularizer(std::move(regularizer))
         {
     declare_stat(STAT_GRAD_SPARSITY, {"gradient_sparsity", "% non-zeros"});
     if(!m_Regularizer) {
@@ -259,7 +258,7 @@ TEST_CASE("sparse/dense equivalence") {
         auto reference = objective::Regularized_SquaredHingeSVC(std::make_shared<GenericFeatureMatrix>(features_sparse),
                                                                 std::make_unique<objective::SquaredNormRegularizer>());
 
-        auto do_test = [&](auto& first, auto& second) { ;
+        auto do_test = [&](auto& first, auto& second) {
             first.get_label_ref() = labels;
             second.get_label_ref() = labels;
 

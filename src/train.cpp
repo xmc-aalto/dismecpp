@@ -5,7 +5,6 @@
 
 #include "parallel/runner.h"
 #include "io/model-io.h"
-#include "io/xmc.h"
 #include "io/slice.h"
 #include "data/data.h"
 #include "data/transform.h"
@@ -119,11 +118,11 @@ void TrainingProgram::setup_save_cmdline()
                                   "just specifies the base name of the metadata file.")->required();
 
     // save format flags
-    auto dense_txt_flag = app.add_flag("--save-dense-txt", [&](std::size_t){ SaveOptions.Format = io::WeightFormat::DENSE_TXT; },
+    auto* dense_txt_flag = app.add_flag("--save-dense-txt", [&](std::size_t){ SaveOptions.Format = io::WeightFormat::DENSE_TXT; },
                  "Save dense weights in a human-readable text format")->take_last();
-    auto dense_npy_flag = app.add_flag("--save-dense-npy", [&](std::size_t){ SaveOptions.Format = io::WeightFormat::DENSE_NPY; },
+    auto* dense_npy_flag = app.add_flag("--save-dense-npy", [&](std::size_t){ SaveOptions.Format = io::WeightFormat::DENSE_NPY; },
                  "Save dense weights in a npy file")->take_last();
-    auto sparse_flag = app.add_flag("--save-sparse-txt", [&](std::size_t){ SaveOptions.Format = io::WeightFormat::SPARSE_TXT; },
+    auto* sparse_flag = app.add_flag("--save-sparse-txt", [&](std::size_t){ SaveOptions.Format = io::WeightFormat::SPARSE_TXT; },
                  "Save sparse weights in a human-readable text format. Sparsity can be adjusted using the --weight-culling option")->take_last();
 
     dense_npy_flag->excludes(dense_txt_flag, sparse_flag);
@@ -132,7 +131,7 @@ void TrainingProgram::setup_save_cmdline()
 
     app.add_option("--weight-culling", SaveOptions.Culling,
                    "When saving in a sparse format, any weight lower than this will be omitted.")->needs(sparse_flag)->check(CLI::NonNegativeNumber);
-                   ;
+
     app.add_option("--save-precision", SaveOptions.Precision,
                    "The number of digits to write for real numbers in text file format.")->check(CLI::NonNegativeNumber)->excludes(dense_npy_flag);
 

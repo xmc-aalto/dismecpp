@@ -82,7 +82,7 @@ namespace {
 }
 
 WeightFormat io::model::parse_weights_format(std::string_view weight_format) {
-    auto format_index = std::find(begin(weight_format_names), end(weight_format_names), weight_format);
+    const auto* format_index = std::find(begin(weight_format_names), end(weight_format_names), weight_format);
     return static_cast<WeightFormat>(std::distance(begin(weight_format_names), format_index));
 }
 
@@ -158,7 +158,7 @@ void io::model::PartialModelIO::insert_sub_file(const WeightFileEntry& sub) {
 // -------------------------------------------------------------------------------
 
 PartialModelSaver::PartialModelSaver(path target_file, SaveOption options, bool load_partial) :
-    m_MetaFileName(std::move(target_file)), m_Options(options) {
+    m_Options(options), m_MetaFileName(std::move(target_file)) {
     if(load_partial) {
         read_metadata_file(m_MetaFileName);
     }
@@ -169,7 +169,7 @@ PartialModelSaver::PartialModelSaver(path target_file, SaveOption options, bool 
     }
 }
 
-std::future<WeightFileEntry> PartialModelSaver::add_model(const std::shared_ptr<const Model>& model, std::optional<std::string> file_path)
+std::future<WeightFileEntry> PartialModelSaver::add_model(const std::shared_ptr<const Model>& model, const std::optional<std::string>& file_path)
 {
     // check compatibility of the partial model
     // if this is the first partial model, accept the values
@@ -292,7 +292,7 @@ void PartialModelSaver::finalize() {
 std::pair<label_id_t, label_id_t> PartialModelSaver::get_missing_weights() const {
     label_id_t last_end{0};
     label_id_t label_end{m_TotalLabels};
-    for(auto& sub : m_SubFiles) {
+    for(const auto& sub : m_SubFiles) {
         if(last_end != sub.First) {
             return {last_end, sub.First};
         }
@@ -440,7 +440,7 @@ std::shared_ptr<Model> PartialModelLoader::load_model(int index) const {
 
 bool PartialModelLoader::validate() const {
     bool valid = true;
-    for(auto& entry: m_SubFiles) {
+    for(const auto& entry: m_SubFiles) {
         path weights_file = meta_file_path();
         auto wf = weights_file.replace_filename(entry.FileName);
 
@@ -528,12 +528,13 @@ TEST_CASE("label lower bound") {
 
 TEST_CASE("insert_sub_file") {
     struct TestModel : public PartialModelIO {
-        TestModel() {}
+        TestModel() = default;
+        ~TestModel() = default;
         void insert(long first, long count) {
             insert_sub_file(WeightFileEntry{label_id_t{first}, count, "", WeightFormat::NULL_FORMAT});
         }
     };
-    TestModel pms{};
+    TestModel pms;
 
     // this just causes the setup, we can't create any contradictions yet
     REQUIRE_NOTHROW(pms.insert(1, 4));

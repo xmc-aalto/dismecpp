@@ -28,10 +28,10 @@ sLineSearchResult BacktrackingLineSearch::search(
     for(int num_linesearch=0; num_linesearch < m_MaxSteps; ++num_linesearch)
     {
         f_new = projected_objective(step);
-        if (f_new - f_old <= m_Eta * step * gTs)
+        if (f_new - f_old <= m_Eta * step * gTs) {
             return {f_new, step, num_linesearch};
-        else
-            step *= m_Alpha;
+        }
+        step *= m_Alpha;
     }
 
     spdlog::warn("Line search failed. Final step size: {:.3}, df = {:.3}",
@@ -56,7 +56,8 @@ void BacktrackingLineSearch::set_max_steps(long n) {
 void BacktrackingLineSearch::set_alpha(double a) {
     if(a <= 0) {
         throw std::invalid_argument("alpha must be positive");
-    } else if (a >= 1) {
+    }
+    if (a >= 1) {
         throw std::invalid_argument("alpha must be less than 1");
     }
     m_Alpha = a;
@@ -65,7 +66,8 @@ void BacktrackingLineSearch::set_alpha(double a) {
 void BacktrackingLineSearch::set_eta(double e) {
     if(e <= 0) {
         throw std::invalid_argument("eta must be positive");
-    } else if (e >= 1) {
+    }
+    if (e >= 1) {
         throw std::invalid_argument("eta must be less than 1");
     }
     m_Eta = e;

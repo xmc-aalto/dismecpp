@@ -63,7 +63,7 @@ void MultiLabelData::get_labels(label_id_t label, Eigen::Ref<BinaryLabelVector> 
     // convert sparse to dense
     const auto& examples = m_Labels.at(label.to_index());
     target.setConstant(-1);
-    for(auto& ex : examples) {
+    for(const auto& ex : examples) {
         target.coeffRef(ex) = 1;
     }
 }

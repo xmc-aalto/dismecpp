@@ -15,11 +15,11 @@
 
 namespace {
     using dismec::stats::stat_id_t;
-    stat_id_t STAT_CUTOFF{0};
-    stat_id_t STAT_NNZ{1};
-    stat_id_t STAT_BINARY_SEARCH_STEPS{2};
-    stat_id_t STAT_INITIAL_STEPS{3};
-    stat_id_t STAT_DURATION{4};
+    constexpr stat_id_t STAT_CUTOFF{0};
+    constexpr stat_id_t STAT_NNZ{1};
+    constexpr stat_id_t STAT_BINARY_SEARCH_STEPS{2};
+    constexpr stat_id_t STAT_INITIAL_STEPS{3};
+    constexpr stat_id_t STAT_DURATION{4};
 };
 
 
@@ -139,29 +139,28 @@ namespace dismec::postproc {
             if(minus_std.Loss > tolerance) {
                 record(STAT_INITIAL_STEPS, step_count);
                 return {{0, weight_vector.size(), initial_lower}, minus_std};
-            } else {
-                record(STAT_INITIAL_STEPS, step_count);
-                return {minus_std, at_mean};
             }
-        } else {
-            // ok, mean is a lower bound
-            BoundData plus_std = check_bound(mean_log + std_log);
-            if(plus_std.Loss > tolerance) {
-                record(STAT_INITIAL_STEPS, step_count);
-                return {at_mean, plus_std};
-            } else {
-                // one more naive trial:
-                BoundData plus_3_std = check_bound(mean_log + 3 * std_log);
-                if(plus_3_std.Loss > tolerance) {
-                    record(STAT_INITIAL_STEPS, step_count);
-                    return {plus_std, plus_3_std};
-                } else {
-                    BoundData at_max = check_bound( std::log(weight_vector.maxCoeff()) );
-                    record(STAT_INITIAL_STEPS, step_count);
-                    return {plus_3_std, at_max};
-                }
-            }
+            record(STAT_INITIAL_STEPS, step_count);
+            return {minus_std, at_mean};
         }
+
+        // ok, mean is a lower bound
+        BoundData plus_std = check_bound(mean_log + std_log);
+        if(plus_std.Loss > tolerance) {
+            record(STAT_INITIAL_STEPS, step_count);
+            return {at_mean, plus_std};
+        }
+
+        // one more naive trial:
+        BoundData plus_3_std = check_bound(mean_log + 3 * std_log);
+        if(plus_3_std.Loss > tolerance) {
+            record(STAT_INITIAL_STEPS, step_count);
+            return {plus_std, plus_3_std};
+        }
+
+        BoundData at_max = check_bound( std::log(weight_vector.maxCoeff()) );
+        record(STAT_INITIAL_STEPS, step_count);
+        return {plus_3_std, at_max};
     }
 }
 

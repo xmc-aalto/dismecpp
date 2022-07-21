@@ -13,7 +13,6 @@
 #include "io/model-io.h"
 #include "io/prediction.h"
 #include "io/xmc.h"
-#include "io/slice.h"
 #include "CLI/CLI.hpp"
 #include "app.h"
 #include "spdlog/spdlog.h"
@@ -31,7 +30,6 @@ int main(int argc, const char** argv) {
     std::filesystem::path save_metrics;
     int threads = -1;
     int top_k = 5;
-    double bias;
 
     DataProcessing DataProc;
     DataProc.setup_data_args(app);
@@ -115,7 +113,7 @@ int main(int argc, const char** argv) {
         metrics.add_dcg_at_k(1, true);
 
         auto add_macro_metrics = [&](int k) {
-            auto macro = metrics.add_macro_at_k(k);
+            auto* macro = metrics.add_macro_at_k(k);
             macro->add_coverage(0.0);
             macro->add_confusion_matrix();
             macro->add_precision(prediction::MacroMetricReporter::MACRO);
@@ -187,7 +185,7 @@ int main(int argc, const char** argv) {
             file << std::setw(4) << data;
         }
 
-        auto& cm = task.get_confusion_matrix();
+        const auto& cm = task.get_confusion_matrix();
         std::int64_t tp = cm[prediction::TopKPredictionTaskGenerator::TRUE_POSITIVES];
         std::int64_t fp = cm[prediction::TopKPredictionTaskGenerator::FALSE_POSITIVES];
         std::int64_t tn = cm[prediction::TopKPredictionTaskGenerator::TRUE_NEGATIVES];

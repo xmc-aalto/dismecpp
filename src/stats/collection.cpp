@@ -73,7 +73,7 @@ void StatisticsCollection::register_stat(const std::string& name, std::unique_pt
 
 const Statistics& StatisticsCollection::get_stat(const std::string& name) const {
     auto id = str_to_id(name, m_MetaData);
-    auto ptr = m_Statistics.at(id.to_index()).get();
+    auto* ptr = m_Statistics.at(id.to_index()).get();
     if(!ptr)
         throw std::invalid_argument("No Statistics registered for the given name");
     return *ptr;
@@ -97,7 +97,7 @@ void StatisticsCollection::declare_tag(tag_id_t index, std::string name) {
         }
     }
 
-    m_TagValues.emplace_back(TagContainer::create_full_container(name));
+    m_TagValues.emplace_back(TagContainer::create_full_container(std::move(name)));
     m_TagLookup.emplace(m_TagValues.back().get_name(), m_TagValues.back());
 }
 
@@ -106,8 +106,8 @@ TagContainer StatisticsCollection::get_tag_by_name(const std::string& name) cons
 }
 
 void StatisticsCollection::provide_tags(const StatisticsCollection& other) {
-    for(auto& other_tag : other.m_TagLookup) {
-        auto result = m_TagLookup.insert(other_tag);
+    for(const auto& other_tag : other.m_TagLookup) {
+        m_TagLookup.insert(other_tag);
         // we cannot check this because of mutual registration.
         // TODO maybe we can verify that they point to the same memory
         /*if(!result.second) {
@@ -125,6 +125,7 @@ bool StatisticsCollection::has_stat(const std::string& name) const {
 #include "doctest.h"
 #include "nlohmann/json.hpp"
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 namespace {
     struct MockStat : public Statistics {
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override {
@@ -246,7 +247,7 @@ TEST_CASE("recording") {
     StatisticsCollection collection;
     collection.declare_stat(stat_id_t{0}, {"stat"});
     collection.register_stat("stat", std::make_unique<MockStat>());
-    auto& stat = dynamic_cast<const MockStat&>(collection.get_stat("stat"));
+    const auto& stat = dynamic_cast<const MockStat&>(collection.get_stat("stat"));
 
     // direct recording
     collection.record(stat_id_t{0}, 5);
@@ -301,3 +302,4 @@ TEST_CASE("tag sharing") {
     DOCTEST_CHECK_THROWS(collection.provide_tags(other));
      */
 }
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

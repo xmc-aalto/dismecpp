@@ -15,21 +15,21 @@ using namespace dismec::solvers;
 namespace {
     using dismec::stats::stat_id_t;
 
-    stat_id_t STAT_GRADIENT_NORM_0{0};
-    stat_id_t STAT_OBJECTIVE_VALUE{1};
-    stat_id_t STAT_GRADIENT_NORM{2};
-    stat_id_t STAT_GRADIENT{3};
-    stat_id_t STAT_PRECONDITIONER{4};
-    stat_id_t STAT_WEIGHT_VECTOR{5};
-    stat_id_t STAT_LINESEARCH_STEPSIZE{6};
-    stat_id_t STAT_CG_ITERS{7};
-    stat_id_t STAT_ITER_TIME{8};
-    stat_id_t STAT_LS_FAIL{9};
-    stat_id_t STAT_LS_STEPS{10};
-    stat_id_t STAT_PROGRESS{11};
-    stat_id_t STAT_ABSOLUTE_STEP{12};
+    constexpr const stat_id_t STAT_GRADIENT_NORM_0{0};
+    constexpr const stat_id_t STAT_OBJECTIVE_VALUE{1};
+    constexpr const stat_id_t STAT_GRADIENT_NORM{2};
+    constexpr const stat_id_t STAT_GRADIENT{3};
+    constexpr const stat_id_t STAT_PRECONDITIONER{4};
+    constexpr const stat_id_t STAT_WEIGHT_VECTOR{5};
+    constexpr const stat_id_t STAT_LINESEARCH_STEPSIZE{6};
+    constexpr const stat_id_t STAT_CG_ITERS{7};
+    constexpr const stat_id_t STAT_ITER_TIME{8};
+    constexpr const stat_id_t STAT_LS_FAIL{9};
+    constexpr const stat_id_t STAT_LS_STEPS{10};
+    constexpr const stat_id_t STAT_PROGRESS{11};
+    constexpr const stat_id_t STAT_ABSOLUTE_STEP{12};
 
-    dismec::stats::tag_id_t TAG_ITERATION{0};
+    constexpr const dismec::stats::tag_id_t TAG_ITERATION{0};
 };
 
 NewtonWithLineSearch::NewtonWithLineSearch(long num_variables) : m_CG_Solver(num_variables),

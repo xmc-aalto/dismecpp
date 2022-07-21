@@ -15,13 +15,23 @@
  * \brief building blocks for io procedures that are used by multiple io subsystems
  * \details This file defines functions that do some generic io procedures, such as parsing
  * or writing single vectors in dense or sparse text format.
+ * \note This needs to be a macro, because THROW_EXCEPTION automatically captures all variables of the current
+ * scope for use in the defined lambda expression.
  */
-
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define THROW_ERROR(...) THROW_EXCEPTION(std::runtime_error, __VA_ARGS__)
 
 namespace dismec::io {
     namespace detail {
         std::string print_char(char c);
+    }
+
+    /// Parses an integer using `std::strtol`. In contrast to the std function, the output parameter is const here.
+    inline long parse_long(const char* string, const char** out) {
+        char* out_ptr = nullptr;
+        long result = std::strtol(string, &out_ptr, 10); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        *out = out_ptr;
+        return result;
     }
 
     /*!
@@ -38,9 +48,9 @@ namespace dismec::io {
     void parse_sparse_vector_from_text(const char* feature_part, F&& callback) {
         const char* start = feature_part;
         while(*feature_part) {
-            char* result;
+            const char* result = nullptr;
             errno = 0;
-            long index = std::strtol(feature_part, &result, 10);
+            long index = parse_long(feature_part, &result);
             if (result == feature_part) {
                 // parsing failed -- either, wrong format, or we have reached some trailing spaces
                 // we verify this here explicitly, again using IELF to keep this out of the hot code path
@@ -63,7 +73,7 @@ namespace dismec::io {
             }
 
             errno = 0;
-            char* after_feature;
+            char* after_feature = nullptr;
             double value = std::strtod(result+1, &after_feature);
             if(result + 1 == after_feature) {
                 THROW_ERROR("Error parsing feature: Missing feature value.");

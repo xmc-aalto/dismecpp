@@ -11,7 +11,7 @@ using namespace dismec::init;
 namespace dismec::init {
     class ConstantInitializer : public WeightsInitializer {
     public:
-        ConstantInitializer(std::shared_ptr<const DenseRealVector> vec) : m_InitVector(std::move(vec)) {
+        explicit ConstantInitializer(std::shared_ptr<const DenseRealVector> vec) : m_InitVector(std::move(vec)) {
             if (!m_InitVector) {
                 throw std::logic_error("Initial vector is <null>");
             }

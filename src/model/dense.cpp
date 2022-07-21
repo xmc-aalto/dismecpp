@@ -27,9 +27,10 @@ namespace {
     }
 }
 
-DenseModel::DenseModel(weight_matrix_ptr weights) :
-        DenseModel(std::move(weights), {label_id_t{0}, weights->cols(), weights->cols()}) {
-
+DenseModel::DenseModel(const weight_matrix_ptr& weights) :
+        DenseModel(weights, {label_id_t{0}, weights->cols(), weights->cols()}) {
+    /// \internal Deliberately using const& here, instead of moving the shared_ptr, because that is still cheap
+    /// and with move it becomes difficult to avoid reading from moved-from shared_ptr
 }
 
 DenseModel::DenseModel(weight_matrix_ptr weights, PartialModelSpec partial) :
@@ -135,7 +136,7 @@ TEST_CASE("get/set dense weights round-trip") {
     model.get_weights_for_label(label_id_t{1}, target);
 
     for(int i = 0; i < 4; ++i) {
-                CHECK(source[i] == target[i]);
+        CHECK(source[i] == target[i]);
     }
 }
 

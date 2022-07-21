@@ -29,7 +29,7 @@ void HyperParameterBase::set_hyper_parameter(const std::string& name, double val
 std::vector<std::string> HyperParameterBase::get_hyper_parameter_names() const {
     std::vector<std::string> result{};
     result.reserve(m_HyperParameters.size());
-    for(auto& hp : m_HyperParameters) {
+    for(const auto& hp : m_HyperParameters) {
         result.push_back(hp.first);
     }
     return result;
@@ -48,7 +48,7 @@ auto HyperParameters::get(const std::string& name) const -> hyper_param_t {
 }
 
 void HyperParameters::apply(HyperParameterBase& target) const {
-    for(auto& hp : m_Values) {
+    for(const auto& hp : m_Values) {
         std::visit([&](auto&& value) {
             target.set_hyper_parameter(hp.first, value);
         }, hp.second);

@@ -30,9 +30,9 @@ namespace {
      */
     XMCHeader parse_xmc_header(const std::string& content) {
         std::stringstream parse_header{content};
-        long NumExamples;
-        long NumFeatures;
-        long NumLabels;
+        long NumExamples = -1;
+        long NumFeatures = -1;
+        long NumLabels = -1;
 
         parse_header >> NumExamples >> NumFeatures >> NumLabels;
         if (parse_header.fail()) {
@@ -117,9 +117,9 @@ namespace {
             // then read as many integers as we can, always skipping exactly one character between. If an integer
             // is followed by a colon, it was a feature id
             while (true) {
-                char *result;
+                const char *result = nullptr;
                 errno = 0;
-                long read = std::strtol(last, &result, 10);
+                long read = dismec::io::parse_long(last, &result);
                 // was there a number to read?
                 if(result == last) {
                     THROW_ERROR("Error parsing label. Expected a number.");
@@ -128,7 +128,7 @@ namespace {
                 }
                 if (*result == ',') {
                     // fine, more labels to come
-                } else if (std::isspace(*result) || *result == '\0') {
+                } else if (std::isspace(*result) != 0 || *result == '\0') {
                     // fine, this was the last label
                     callback(read);
                     return result;
@@ -298,7 +298,7 @@ void dismec::io::save_xmc_dataset(std::ostream& target, const MultiLabelData& da
     /// TODO handle this in a CSR format instead of LoL
     std::vector<std::vector<int>> all_labels(data.num_examples());
     for(label_id_t label{0}; label.to_index() < data.num_labels(); ++label) {
-        for(auto& instance : data.get_label_instances(label)) {
+        for(const auto& instance : data.get_label_instances(label)) {
             all_labels[instance].push_back(label.to_index());
         }
     }
@@ -306,7 +306,7 @@ void dismec::io::save_xmc_dataset(std::ostream& target, const MultiLabelData& da
     if(!data.get_features()->is_sparse()) {
         throw std::runtime_error(fmt::format("XMC format requires sparse labels"));
     }
-    auto& feature_ptr = data.get_features()->sparse();
+    const auto& feature_ptr = data.get_features()->sparse();
 
     for(int example = 0; example < data.num_examples(); ++example) {
         // first, write the label list

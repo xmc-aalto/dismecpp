@@ -1,0 +1,29 @@
+name: Clang-Tidy
+on: [push, pull_request]
+
+jobs:
+  clang-tidy:
+    runs-on: ubuntu-22.04
+    env:
+      CXX: clang++
+      CC: clang
+      CXXFLAGS: -Wall
+    steps:
+      # Checkout the repository, making sure we recursively get the git submodules which contain our dependencies
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      # Install dependencies (currently, only boost, the rest is in submodules)
+      - name: Install Dependencies
+        run: sudo apt -qq install -y libboost-all-dev clang-tidy ninja-build
+
+      # Configure CMake in a 'build' subdirectory. Ensure a compilation database is created
+      - name: Configure CMake and generate build commands
+        run: cmake -G Ninja -B ${{github.workspace}}/build -S . -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Run clang-tidy
+        # gather all c/cpp/h/hpp files and run clang-tidy on them
+        #run: clang-tidy --quiet -p=${{github.workspace}}/build `find ~+/src -type f -regex ".*\.[ch]\(pp\)?$"`
+        # TODO for some reason, linking 'train' currently crashes. For now, only build the unit tests
+        run: cmake --build ${{github.workspace}}/build --parallel --target libdismec

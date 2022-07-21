@@ -7,6 +7,7 @@
 #define DISMEC_REG_SQ_HINGE_DETAIL_H
 
 #include <vector>
+#include "utils/conversion.h"
 #include "matrix_types.h"
 #include "utils/fast_sparse_row_iter.h"
 
@@ -29,9 +30,9 @@ namespace dismec {
             if (indices.empty())
                 return;
 
-            auto val_ptr = features.valuePtr();
-            auto inner_ptr = features.innerIndexPtr();
-            auto outer_ptr = features.outerIndexPtr();
+            const auto *val_ptr = features.valuePtr();
+            const auto *inner_ptr = features.innerIndexPtr();
+            const auto *outer_ptr = features.outerIndexPtr();
 
             int sm1 = static_cast<int>(indices.size()) - 1;
             for (int i = 0; i < indices.size(); ++i) {
@@ -57,12 +58,12 @@ namespace dismec {
         inline void __attribute__((hot, optimize("-ffast-math")))
         htd_sum_new(const std::vector<int>& indices, Eigen::Ref<DenseRealVector> output,
                     const SparseFeatures& features, const DenseRealVector& costs, const DenseRealVector& direction) {
-            auto val_ptr = features.valuePtr();
-            auto inner_ptr = features.innerIndexPtr();
-            auto outer_ptr = features.outerIndexPtr();
-            int sm1 = static_cast<int>(indices.size()) - 1;
+            const auto *val_ptr = features.valuePtr();
+            const auto *inner_ptr = features.innerIndexPtr();
+            const auto *outer_ptr = features.outerIndexPtr();
+            long sm1 = to_long(indices.size()) - 1;
 
-            for (int i = 0; i < indices.size(); ++i) {
+            for (long i = 0; i < indices.size(); ++i) {
                 int index = indices[i];
                 int next_index = indices[std::min(i + 2, sm1)];
                 int next_id = outer_ptr[next_index];
@@ -83,7 +84,8 @@ namespace dismec {
                               const Eigen::DenseBase<Derived>& xTw) {
             real_t f = 0;
             assert(xTw.size() == labels.size());
-            for (std::size_t i = 0; i < labels.size(); ++i) {
+            long num_labels = to_long(labels.size());
+            for (long i = 0; i < num_labels; ++i) {
                 real_t label = labels.coeff(i);
                 real_t d = 1.0 - label * xTw.coeff(i);
                 if (d > 0) {

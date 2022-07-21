@@ -16,10 +16,6 @@ using namespace dismec;
  * we run this code on, this is what we use.
  */
 namespace {
-    /// The counter for the ids. We expect `std::size_t` to have at least 64 bits, so that wrap-around is not an issue.
-    std::atomic<std::size_t> next_id{0};
-    static_assert(sizeof(std::size_t) >= 8, "std::size_t is expected to be at least 64 bit, so that we can be sure our unique ids never wrap around.");
-
     /*!
      * \brief Get the next valid id.
      * \details This increments the \ref next_id and returns the old value, in an atomic fashion so that even when
@@ -27,6 +23,10 @@ namespace {
      */
     std::size_t get_next_id()
     {
+        /// The counter for the ids. We expect `std::size_t` to have at least 64 bits, so that wrap-around is not an issue.
+        static std::atomic<std::size_t> next_id{0};
+        static_assert(sizeof(std::size_t) >= 8, "std::size_t is expected to be at least 64 bit, so that we can be sure our unique ids never wrap around.");
+
         // see also https://stackoverflow.com/questions/41206861/atomic-increment-and-return-counter
         return next_id++;
     }
@@ -43,7 +43,7 @@ void HashVector::update_id() {
 }
 
 VectorHash HashVector::hash() const {
-    return VectorHash(m_UniqueID);
+    return {m_UniqueID};
 }
 
 VectorHash::VectorHash() : m_UniqueID(-1) {

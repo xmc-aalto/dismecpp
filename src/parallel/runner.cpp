@@ -6,9 +6,11 @@
 #include <algorithm>
 #include <thread>
 #include <atomic>
+#include "config.h"
 #include "parallel/runner.h"
 #include "parallel/task.h"
 #include "parallel/numa.h"
+#include "utils/conversion.h"
 
 using namespace dismec::parallel;
 
@@ -39,7 +41,7 @@ RunResult ParallelRunner::run(TaskGenerator& tasks, long start) {
 
     long num_threads = m_NumThreads;
     if(num_threads <= 0) {
-        num_threads = static_cast<long>(std::thread::hardware_concurrency());
+        num_threads = to_long(std::thread::hardware_concurrency());
     }
     if(num_threads > 2*std::thread::hardware_concurrency() + 1) {
         spdlog::warn("You have specified many more threads ({}) than your hardware appears to support ({}). Number"
@@ -79,7 +81,7 @@ RunResult ParallelRunner::run(TaskGenerator& tasks, long start) {
         workers.emplace_back([&, thread_id=thread_id_t(thread)]()
                              {
                                  if(m_BindThreads) {
-                                     distribute.pin_this_thread(thread_id.to_index());
+                                     distribute.pin_this_thread(thread_id);
                                  }
 
                                  tasks.init_thread(thread_id);
@@ -127,7 +129,7 @@ RunResult ParallelRunner::run(TaskGenerator& tasks, long start) {
     }
 
     // display a warning if threads need to get new work more than every 5 ms.
-    if((cpu_time * m_ChunkSize) / num_tasks < 5) {
+    if((cpu_time * m_ChunkSize) / num_tasks < MIN_TIME_PER_CHUNK_MS) {
         spdlog::warn("The average time per chunk of work is only {}µs, consider increasing chunk size (currently {}) to "
                      "reduce parallelization overhead.", (1000 * cpu_time * m_ChunkSize) / num_tasks, m_ChunkSize);
     }
@@ -190,11 +192,11 @@ TEST_CASE("run parallel") {
     ParallelRunner runner{-1};
     DummyTask task;
     auto res = runner.run(task);
-            REQUIRE(res.IsFinished);
+    REQUIRE(res.IsFinished);
 
     // make sure each task ran exactly once
     for(int s = 0; s < task.check.size(); ++s) {
-                REQUIRE_MESSAGE(task.check[s] == 1, "error at index " << s);
+        REQUIRE_MESSAGE(task.check[s] == 1, "error at index " << s);
     }
 }
 
@@ -203,14 +205,14 @@ TEST_CASE("run chunked parallel with start pos")
     ParallelRunner runner{-1, 32};
     DummyTask task;
     auto res = runner.run(task, 5);
-            REQUIRE(res.IsFinished);
+    REQUIRE(res.IsFinished);
 
     // make sure that skipped tasks are not run, but all others are
     for(int s = 0; s < 5; ++s) {
-                REQUIRE(task.check[s] == 0);
+        REQUIRE(task.check[s] == 0);
     }
     for(int s = 5; s < task.check.size(); ++s) {
-                REQUIRE_MESSAGE(task.check[s] == 1, "error at index " << s);
+        REQUIRE_MESSAGE(task.check[s] == 1, "error at index " << s);
     }
 }
 
@@ -220,13 +222,13 @@ TEST_CASE("run parallel with timeout") {
     task.do_work = true;
     runner.set_time_limit(std::chrono::milliseconds(50));
     auto res = runner.run(task, 5);
-            REQUIRE_FALSE(res.IsFinished);
+    REQUIRE_FALSE(res.IsFinished);
 
     // check that NextTask correctly identifies until where we have done our work
     for(int s = 5; s < res.NextTask; ++s) {
-                REQUIRE(task.check[s] == 1);
+        REQUIRE(task.check[s] == 1);
     }for(int s = res.NextTask; s < task.check.size(); ++s) {
-                REQUIRE(task.check[s] == 0);
+        REQUIRE(task.check[s] == 0);
     }
 }
 

@@ -167,7 +167,7 @@ void register_training(pybind11::module_& m) {
             } else {
                 hps.set(item.first.cast<std::string>(), item.second.cast<double>());
             }
-        };
+        }
 
         auto spec = create_dismec_training(data, hps, config);
 

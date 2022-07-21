@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "cg.h"
-#include "doctest.h"
 #include <spdlog/spdlog.h>
 
 using namespace dismec;
@@ -19,12 +18,12 @@ CGMinimizer::CGMinimizer(std::size_t num_vars) : m_Size(num_vars) {
     declare_hyper_parameter("epsilon", &CGMinimizer::get_epsilon, &CGMinimizer::set_epsilon);
 }
 
-int CGMinimizer::minimize(const MatrixVectorProductFn& A, const DenseRealVector& b, const DenseRealVector& M) {
-    int result = do_minimize(A, b, M);
+long CGMinimizer::minimize(const MatrixVectorProductFn& A, const DenseRealVector& b, const DenseRealVector& M) {
+    long result = do_minimize(A, b, M);
     return result;
 }
 
-int CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVector& b, const DenseRealVector& M) {
+long CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVector& b, const DenseRealVector& M) {
     // in comments, we use z to denote Residual/M
     m_S.setZero();                                  // assume x_0 = 0
     m_Residual = -b;                                // note: We are solving Ax+b = 0, typically CG is used for Ax = b.
@@ -34,15 +33,16 @@ int CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVect
 
     auto zT_dot_r = m_Conjugate.dot(m_Residual);             // at this point: m_Conjugate == z
     real_t gMinv_norm = std::sqrt(zT_dot_r);                 // = sqrt(-b^T / M b)
-    real_t cgtol = std::min(m_Epsilon, std::sqrt(gMinv_norm));
+    real_t cg_tol = std::min(m_Epsilon, std::sqrt(gMinv_norm));
 
-    int max_cg_iter = std::max(m_Size, std::size_t(5));
-    for(int cg_iter = 1; cg_iter <= max_cg_iter; ++cg_iter) {
+    long max_cg_iter = std::max(m_Size, std::size_t(CG_MIN_ITER_BOUND));
+    for(long cg_iter = 1; cg_iter <= max_cg_iter; ++cg_iter) {
         A(m_Conjugate, m_A_times_d);
         real_t dAd = m_Conjugate.dot(m_A_times_d);
         if(dAd < 1e-16) {
             return cg_iter;
         }
+
         real_t alpha = zT_dot_r / dAd;
         m_S += alpha * m_Conjugate;
         m_Residual -= alpha * m_A_times_d;
@@ -52,7 +52,7 @@ int CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVect
         real_t Qdiff = newQ - Q;
         if (newQ <= 0 && Qdiff <= 0)
         {
-            if (cg_iter * Qdiff >= cgtol * newQ) {
+            if (cg_iter * Qdiff >= cg_tol * newQ) {
                 return cg_iter;     // success
             }
         }
@@ -76,13 +76,16 @@ int CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVect
     return max_cg_iter;
 }
 
+#include "doctest.h"
+
 TEST_CASE("conjugate gradient") {
-    auto minimizer = CGMinimizer(5);
+    const int TEST_SIZE = 5;
+    auto minimizer = CGMinimizer(TEST_SIZE);
     minimizer.set_epsilon(0.001);
-    types::DenseColMajor<real_t> A = types::DenseColMajor<real_t>::Random(5, 5);
+    types::DenseColMajor<real_t> A = types::DenseColMajor<real_t>::Random(TEST_SIZE, TEST_SIZE);
     A = (A*A.transpose()).eval();  // ensure symmetric, PSD matrix
-    DenseRealVector b = DenseRealVector::Random(5);
-    DenseRealVector m = DenseRealVector::Ones(5);
+    DenseRealVector b = DenseRealVector::Random(TEST_SIZE);
+    DenseRealVector m = DenseRealVector::Ones(TEST_SIZE);
 
     minimizer.minimize([&](const DenseRealVector& d, Eigen::Ref<DenseRealVector> out){
         out = A * d;

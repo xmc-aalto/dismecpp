@@ -12,7 +12,7 @@ using namespace dismec;
 using namespace dismec::objective;
 
 namespace {
-    dismec::stats::stat_id_t STAT_PERF_MATMUL{7};
+    constexpr const dismec::stats::stat_id_t STAT_PERF_MATMUL{7};
 }
 
 LinearClassifierBase::LinearClassifierBase(std::shared_ptr<const GenericFeatureMatrix> X) :
@@ -20,8 +20,8 @@ LinearClassifierBase::LinearClassifierBase(std::shared_ptr<const GenericFeatureM
     m_X_times_w( m_FeatureMatrix->rows() ),
     m_LsCache_xTd( m_FeatureMatrix->rows() ),
     m_LsCache_xTw( m_FeatureMatrix->rows() ),
-    m_Y( m_FeatureMatrix->rows() ),
-    m_Costs( m_FeatureMatrix->rows() )
+    m_Costs( m_FeatureMatrix->rows() ),
+    m_Y( m_FeatureMatrix->rows() )
 {
     m_Costs.fill(1);
     declare_stat(STAT_PERF_MATMUL, {"perf_matmul", "µs"});

@@ -44,8 +44,8 @@ void EvaluateMetrics::process_prediction(const std::vector<label_id_t>& raw_labe
 }
 
 void EvaluateMetrics::run_task(long task_id, thread_id_t thread_id) {
-    auto  prediction = m_Predictions->row(task_id);
-    auto& labels     = (*m_Labels)[task_id];
+    auto prediction    = m_Predictions->row(task_id);
+    const auto& labels = (*m_Labels)[task_id];
 
     auto& predicted_cache = m_ThreadLocalPredictedLabels[thread_id.to_index()];
     auto& true_cache = m_ThreadLocalTrueLabels[thread_id.to_index()];
@@ -123,7 +123,7 @@ MacroMetricReporter* EvaluateMetrics::add_macro_at_k(long k) {
 
     auto collector = std::make_unique<ConfusionMatrixRecorder>(m_NumLabels, k);
     auto metrics = std::make_unique<MacroMetricReporter>(collector.get());
-    auto result = metrics.get();
+    auto* result = metrics.get();
     m_Metrics.push_back( std::move(metrics) );
     m_Collectors[0].push_back(std::move(collector));
     return result;
@@ -132,7 +132,7 @@ MacroMetricReporter* EvaluateMetrics::add_macro_at_k(long k) {
 
 std::vector<std::pair<std::string, double>> EvaluateMetrics::get_metrics() const {
     std::vector<std::pair<std::string, double>> results;
-    for(auto& m : m_Metrics)  {
+    for(const auto& m : m_Metrics)  {
         auto result = m->get_values();
         std::copy(begin(result), end(result), std::back_inserter(results));
     }

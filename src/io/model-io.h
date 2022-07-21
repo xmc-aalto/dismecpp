@@ -268,7 +268,7 @@ namespace dismec::io
              * weight file entry that has been added to the list of weight files.
              */
             std::future<WeightFileEntry> add_model(const std::shared_ptr<const Model>& model,
-                                                   std::optional<std::string> file_path={});
+                                                   const std::optional<std::string>& file_path={});
 
             using PartialModelIO::insert_sub_file;
 

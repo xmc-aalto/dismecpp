@@ -10,7 +10,7 @@
 using namespace dismec;
 namespace prediction = dismec::io::prediction;
 
-void prediction::save_sparse_predictions(path target_file,
+void prediction::save_sparse_predictions(const path& target_file,
                                          const PredictionMatrix& values,
                                          const IndexMatrix& indices) {
     std::fstream file(target_file, std::fstream::out);
@@ -94,12 +94,12 @@ std::pair<IndexMatrix, PredictionMatrix> prediction::read_sparse_prediction(std:
     return {std::move(indices), std::move(values)};
 }
 
-std::pair<IndexMatrix, PredictionMatrix> prediction::read_sparse_prediction(path source) {
+std::pair<IndexMatrix, PredictionMatrix> prediction::read_sparse_prediction(const path& source) {
     std::fstream stream(source, std::fstream::in);
     return read_sparse_prediction(stream);
 }
 
-void prediction::save_dense_predictions(path target, const PredictionMatrix & values) {
+void prediction::save_dense_predictions(const path& target, const PredictionMatrix & values) {
     std::fstream file(target, std::fstream::out);
     save_dense_predictions(file, values);
 }

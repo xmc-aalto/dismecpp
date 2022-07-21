@@ -33,7 +33,7 @@ void ConfusionMatrixRecorder::update(const pd_info_vec& prediction, const gt_inf
         }
     }
 
-    for(auto& lbl : labels) {
+    for(const auto& lbl : labels) {
         if(lbl.Rank >= m_K) {
             ++m_Confusion[lbl.Label.to_index()].FalseNegatives;
         }
@@ -42,7 +42,7 @@ void ConfusionMatrixRecorder::update(const pd_info_vec& prediction, const gt_inf
 }
 
 void ConfusionMatrixRecorder::reduce(const MetricCollectionInterface& other) {
-    auto& other_direct = dynamic_cast<const ConfusionMatrixRecorder&>(other);
+    const auto& other_direct = dynamic_cast<const ConfusionMatrixRecorder&>(other);
 
     ALWAYS_ASSERT_EQUAL(m_K, other_direct.m_K, "Mismatch in confusion matrix K: {} and {}");
     ALWAYS_ASSERT_EQUAL(num_labels(), other.num_labels(), "Mismatch in number of labels: {} and {}");
@@ -75,7 +75,7 @@ void InstanceAveragedMetric::accumulate(double value) {
 }
 
 void InstanceAveragedMetric::reduce(const MetricCollectionInterface& other) {
-    auto& cast = dynamic_cast<const InstanceAveragedMetric&>(other);
+    const auto& cast = dynamic_cast<const InstanceAveragedMetric&>(other);
     // add up weights and accumulated values
     m_Accumulator += cast.m_Accumulator.value();
     m_NumSamples += cast.m_NumSamples;
@@ -101,7 +101,7 @@ InstanceRankedPositives::InstanceRankedPositives(long num_labels, long k, bool n
 }
 #include <iostream>
 InstanceRankedPositives::InstanceRankedPositives(long num_labels, long k, bool normalize, std::vector<double> weights) :
-    InstanceAveragedMetric(num_labels), m_K(k), m_Weights( std::move(weights) ), m_Normalize(normalize) {
+    InstanceAveragedMetric(num_labels), m_K(k), m_Normalize(normalize), m_Weights( std::move(weights) ) {
     ALWAYS_ASSERT_EQUAL(m_K, m_Weights.size(), "Mismatch between k={} and #weights = {}");
     // Exclusive scan -- prepend a zero
     m_Cumulative.push_back(0.0);
@@ -162,7 +162,7 @@ std::unique_ptr<MetricCollectionInterface> AbandonmentAtK::clone() const {
 // ---------------------------------------------------------------------------------------------------------------------
 
 InstanceWiseMetricReporter::InstanceWiseMetricReporter(std::string name, const InstanceAveragedMetric* metric) :
-    m_Metric(metric), m_Name(std::move(name)) {
+    m_Name(std::move(name)), m_Metric(metric) {
 
 }
 
@@ -195,6 +195,7 @@ namespace {
     }
 }
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define IMPLEMENT_ADD_METRIC(METRIC, SHORTHAND)                                                 \
 void MacroMetricReporter::add_##METRIC(ReductionType reduction, std::string name) {             \
 auto fn = [](const ConfusionMatrix& cm){ return METRIC(cm); };                                  \
@@ -300,12 +301,14 @@ auto MacroMetricReporter::get_values() const -> std::vector<metric_t> {
 
 #include "doctest.h"
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 namespace {
     using pred_mat_t = Eigen::Matrix<long, 1, Eigen::Dynamic>;
     auto make_labels(std::initializer_list<long> init_list) {
         auto vec = std::vector<dismec::label_id_t>{};
         vec.reserve(init_list.size());
-        for(auto& i : init_list) {
+        for(const auto& i : init_list) {
             vec.emplace_back(i);
         }
         return vec;
@@ -379,3 +382,4 @@ TEST_CASE("coverage_at_k") {
     CHECK(cat3.value() == 4.0 / 20.0);
 }
 */
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

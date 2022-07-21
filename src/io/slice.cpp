@@ -19,17 +19,17 @@ namespace {
     DenseFeatures load_features(std::istream& features) {
         if(io::is_npy(features)) {
             return io::load_matrix_from_npy(features);
-        } else {
-            std::string line_buffer;
-            std::getline(features, line_buffer);
-            io::MatrixHeader header = io::parse_header(line_buffer);
-            DenseFeatures target(header.NumRows, header.NumCols);
-
-            for(int row = 0; row < header.NumRows; ++row) {
-                io::read_vector_from_text(features, target.row(row));
-            }
-            return target;
         }
+
+        std::string line_buffer;
+        std::getline(features, line_buffer);
+        io::MatrixHeader header = io::parse_header(line_buffer);
+        DenseFeatures target(header.NumRows, header.NumCols);
+
+        for(int row = 0; row < header.NumRows; ++row) {
+            io::read_vector_from_text(features, target.row(row));
+        }
+        return target;
     }
 }
 
@@ -93,16 +93,16 @@ TEST_CASE("small dataset") {
     }
 
     // check the labels
-    auto& l0 = ds.get_label_instances(label_id_t{0});
+    const auto& l0 = ds.get_label_instances(label_id_t{0});
     REQUIRE(l0.size() == 2);
     CHECK(l0[0] == 1);
     CHECK(l0[1] == 2);
 
-    auto& l1 = ds.get_label_instances(label_id_t{1});
+    const auto& l1 = ds.get_label_instances(label_id_t{1});
     REQUIRE(l1.size() == 1);
     CHECK(l1[0] == 0);
 
-    auto& l2 = ds.get_label_instances(label_id_t{2});
+    const auto& l2 = ds.get_label_instances(label_id_t{2});
     REQUIRE(l2.size() == 1);
     CHECK(l2[0] == 2);
 }

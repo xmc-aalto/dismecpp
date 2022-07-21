@@ -95,7 +95,7 @@ TopKPredictionTaskGenerator::TopKPredictionTaskGenerator(const DatasetBase* data
 
 long TopKPredictionTaskGenerator::num_tasks() const {
     return m_Data->num_examples();
-};
+}
 
 void TopKPredictionTaskGenerator::prepare(long num_threads, long chunk_size) {
     m_ThreadLocalPredictionCache.resize(num_threads);

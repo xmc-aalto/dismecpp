@@ -26,7 +26,7 @@ namespace dismec::model {
          * constructor can be used.
          * \param weights Weights for each label.
          */
-        explicit DenseModel(weight_matrix_ptr weights);
+        explicit DenseModel(const weight_matrix_ptr& weights);
 
         /*!
          * \brief Creates a (potentially partial) dense model with the given weight matrix.

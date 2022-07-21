@@ -14,7 +14,7 @@ using namespace dismec::objective;
 
 namespace {
     using dismec::stats::stat_id_t;
-    stat_id_t STAT_PERF_MATMUL{7};
+    constexpr const stat_id_t STAT_PERF_MATMUL{7};
 }
 
 DenseAndSparseLinearBase::DenseAndSparseLinearBase(std::shared_ptr<const GenericFeatureMatrix> dense_features,
@@ -24,11 +24,11 @@ DenseAndSparseLinearBase::DenseAndSparseLinearBase(std::shared_ptr<const Generic
     m_X_times_w( m_DenseFeatures->rows() ),
     m_LsCache_xTd( m_DenseFeatures->rows() ),
     m_LsCache_xTw( m_DenseFeatures->rows() ),
-    m_Y( m_DenseFeatures->rows() ),
     m_Costs( m_DenseFeatures->rows() ),
+    m_Y( m_DenseFeatures->rows() ),
     m_DerivativeBuffer(m_DenseFeatures->rows()), m_SecondDerivativeBuffer(m_DenseFeatures->rows()),
-    m_GenericOutBuffer(m_DenseFeatures->rows()), m_GenericInBuffer(m_DenseFeatures->rows()),
-    m_LineStart( num_variables() ), m_LineDirection( num_variables() ), m_LineCache( num_variables() )
+    m_LineStart( get_num_variables() ), m_LineDirection( get_num_variables() ),
+    m_LineCache( get_num_variables() ), m_GenericInBuffer(m_DenseFeatures->rows()), m_GenericOutBuffer(m_DenseFeatures->rows())
 {
     ALWAYS_ASSERT_EQUAL(m_DenseFeatures->rows(), m_SparseFeatures->rows(), "Mismatching number ({} vs {}) of instances (rows) in dense and sparse part.")
     m_Costs.fill(1);
@@ -41,6 +41,10 @@ long DenseAndSparseLinearBase::num_instances() const noexcept {
 }
 
 long DenseAndSparseLinearBase::num_variables() const noexcept {
+    return get_num_variables();
+}
+
+long DenseAndSparseLinearBase::get_num_variables() const noexcept {
     return m_DenseFeatures->cols() + m_SparseFeatures->cols();
 }
 
@@ -173,7 +177,7 @@ void DenseAndSparseLinearBase::gradient_at_zero_unchecked(Eigen::Ref<DenseRealVe
     m_GenericInBuffer = DenseRealVector::Zero(labels().size());
     m_GenericOutBuffer.resize(m_GenericInBuffer.size());
     calculate_derivative(m_GenericInBuffer, labels(), m_GenericOutBuffer);
-    auto& cost_vector = costs();
+    const auto& cost_vector = costs();
     for (int pos = 0; pos < m_GenericOutBuffer.size(); ++pos) {
         if(real_t d = m_GenericOutBuffer.coeff(pos); d != 0) {
             DENSE_PART(target) += dense_features().row(pos) * (cost_vector.coeff(pos) * d);

@@ -39,18 +39,19 @@ namespace dismec::stats {
             }
         }
         ScopeTimer(const ScopeTimer&) = delete;
+        ScopeTimer operator=(const ScopeTimer&) = delete;
 
         /*!
          * \brief Move constructor. Needs to disable recording for the moved-from timer.
          */
         ScopeTimer(ScopeTimer&& other) noexcept :
-                m_Target(other.m_Target), m_Start(other.m_Start), m_Accu(other.m_Accu), m_Enabled(other.m_Enabled) {
+                m_Target(other.m_Target), m_Enabled(other.m_Enabled), m_Start(other.m_Start), m_Accu(other.m_Accu) {
             other.m_Enabled = false;        // disable recording for other.
         }
     };
 
     inline ScopeTimer record_scope_time(StatisticsCollection& accumulator, stat_id_t id) {
-        return ScopeTimer(&accumulator, id);
+        return {&accumulator, id};
     }
 }
 

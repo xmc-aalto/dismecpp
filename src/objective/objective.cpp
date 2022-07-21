@@ -12,13 +12,13 @@ using namespace dismec;
 using namespace dismec::objective;
 
 namespace {
-    stats::stat_id_t STAT_PERF_VALUE{0};
-    stats::stat_id_t STAT_PERF_PRECONDITIONER{1};
-    stats::stat_id_t STAT_PERF_GRAD_AT_ZERO{2};
-    stats::stat_id_t STAT_PERF_GRADIENT{3};
-    stats::stat_id_t STAT_PERF_HESSIAN{4};
-    stats::stat_id_t STAT_PERF_GRAD_AND_PRE{5};
-    stats::stat_id_t STAT_PERF_PROJ_TO_LINE{6};
+    constexpr const stats::stat_id_t STAT_PERF_VALUE{0};
+    constexpr const stats::stat_id_t STAT_PERF_PRECONDITIONER{1};
+    constexpr const stats::stat_id_t STAT_PERF_GRAD_AT_ZERO{2};
+    constexpr const stats::stat_id_t STAT_PERF_GRADIENT{3};
+    constexpr const stats::stat_id_t STAT_PERF_HESSIAN{4};
+    constexpr const stats::stat_id_t STAT_PERF_GRAD_AND_PRE{5};
+    constexpr const stats::stat_id_t STAT_PERF_PROJ_TO_LINE{6};
 }
 
 Objective::Objective() {

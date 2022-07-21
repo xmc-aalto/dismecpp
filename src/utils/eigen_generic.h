@@ -11,9 +11,10 @@
 
 namespace Eigen {
     template<typename Derived>
-    class EigenBase;
+    struct EigenBase;
 }
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define EIGEN_VISITORS_IMPLEMENT_VISITOR(VISITOR, BASE, CALL)                           \
 struct VISITOR {                                                                        \
     template<class Derived, class... Args>                                              \
