@@ -1,4 +1,4 @@
-name: Test
+name: Testing
 on: [push, pull_request]
 
 env:
@@ -37,23 +37,26 @@ jobs:
         # Configure CMake in a 'build' subdirectory, using the build type as set up
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
+      # Ideally, we would like to specify --parallel as a built option, but this leads to sporadic OOM kills
+      # that cause the jobs to fail. In any case, due to LTO a large fraction of built time is consumed by linkin
+
       # use separate script steps for the different targets to make it easier to pinpoint problems if something goes wrong
       - name: Build Training and Prediction
         # Build the train and predict executables with the given settings
-        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target train predict
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target train predict
         timeout-minutes: 5
 
       - name: Build Tools
         # Build the tool executables
-        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target tfidf labelstats
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target tfidf labelstats
 
       - name: Build Python Bindings
         # Build the python bindings
-        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target pydismec
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target pydismec
 
       - name: Build Test
         # Build the unit tests with the given settings
-        run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}} --target unittest
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target unittest
 
       # only store the test file for the latest ubuntu
       - name: Upload unit test file

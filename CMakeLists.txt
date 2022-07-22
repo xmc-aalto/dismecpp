@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(DiSMEC)
+project(DiSMEC++)
 
 find_package(Threads REQUIRED)
 find_package(Boost REQUIRED)
@@ -31,13 +31,16 @@ if(${DOXYGEN_FOUND})
     set(DOXYGEN_GENERATE_TREEVIEW YES)
     set(DOXYGEN_EXTRACT_PRIV_VIRTUAL YES)       # even in user mode, these may be needed for overriding some behaviour
     set(DOXYGEN_USE_MATHJAX YES)
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE README.md)
     # set(DOXYGEN_CLANG_ASSISTED_PARSING YES)
-    set(DOXYGEN_HTML_EXTRA_FILES bench/result.html)
+    #set(DOXYGEN_HTML_EXTRA_FILES bench/result.html)
 
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
     doxygen_add_docs(
             doxygen
             ${PROJECT_SOURCE_DIR}/src
+            README.md
+            doc/stats.md
             COMMENT "Generate HTML docs"
     )
 endif()
@@ -45,10 +48,10 @@ endif()
 # pull in the dependencies which we have included in the deps directory
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 set(JSON_MultipleHeaders ON)
-add_subdirectory(deps/json)
+add_subdirectory(deps/json EXCLUDE_FROM_ALL)
 # this is linked with the pybind library, so we need PIC
 SET(CMAKE_POSITION_INDEPENDENT_CODE True)
-add_subdirectory(deps/spdlog)
+add_subdirectory(deps/spdlog EXCLUDE_FROM_ALL)
 unset(CMAKE_POSITION_INDEPENDENT_CODE)
 
 add_subdirectory(deps/CLI11 EXCLUDE_FROM_ALL)

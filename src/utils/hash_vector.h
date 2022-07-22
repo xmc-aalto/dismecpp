@@ -180,7 +180,7 @@ namespace dismec
 
     class CacheHelper {
     public:
-        explicit CacheHelper(int size) : m_Input(), m_Output(size) {}
+        explicit CacheHelper(Eigen::Index size) : m_Input(), m_Output(size) {}
 
         template<class F>
         const DenseRealVector& update(const HashVector& input, F&& function) {

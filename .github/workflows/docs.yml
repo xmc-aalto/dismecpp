@@ -1,0 +1,44 @@
+name: Doxygen
+# see https://gist.github.com/shundhammer/ed359db0d9329d4db551528256060d2a
+on:
+  push:
+    branches:
+      - master
+      - docs
+permissions:
+  contents: write
+
+jobs:
+  doxygen:
+    runs-on: ubuntu-22.04
+    steps:
+      # Checkout the repository, making sure we recursively get the git submodules which contain our dependencies
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      # Install dependencies (currently, only boost, the rest is in submodules)
+      - name: Install Dependencies
+        run: sudo apt -qq install -y libboost-all-dev doxygen
+
+      # Configure CMake in a 'build' subdirectory.
+      - name: Configure CMake and generate build commands
+        run: cmake -B ${{github.workspace}}/build -S .
+
+      - name: Run doxygen
+        run: cmake --build ${{github.workspace}}/build --parallel --target doxygen
+
+      # we need to set up user and email, otherwise git refuses the commit
+      - name: Create clean gh-pages branch
+        run: |
+          git config user.email "dismecpp@users.noreply.github.com"
+          git config user.name "$GITHUB_WORKFLOW GitHub action"
+          git checkout --orphan gh-pages
+          git rm -rf .
+
+      - name: Add and push generated api docs to github pages
+        run: |
+          mv ${{github.workspace}}/build/docs/html docs
+          git add docs
+          git commit -am "Generated API doc"
+          git push -f origin gh-pages:gh-pages
