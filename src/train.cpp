@@ -428,7 +428,7 @@ int TrainingProgram::run(int argc, const char** argv)
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
-        return app.exit(e);
+        std::exit(app.exit(e));
     }
 
     // check validity of save location

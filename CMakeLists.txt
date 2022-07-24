@@ -59,6 +59,7 @@ add_subdirectory(deps/pybind11 EXCLUDE_FROM_ALL)
 add_subdirectory(deps/nanobench EXCLUDE_FROM_ALL)
 # disable any tests for eigen
 option(BUILD_TESTING "" OFF)
+set(EIGEN_BUILD_DOC OFF)
 add_subdirectory(deps/eigen EXCLUDE_FROM_ALL)
 
 # enable testing only after eigen has been included

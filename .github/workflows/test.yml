@@ -117,8 +117,8 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install python dependencies
+        run: pip install pytest numpy
 
       - name: Verify eurlex training
         working-directory: test
