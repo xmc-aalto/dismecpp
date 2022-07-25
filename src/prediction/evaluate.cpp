@@ -5,13 +5,14 @@
 
 #include "evaluate.h"
 #include "metrics.h"
+#include "utils/conversion.h"
 #include "spdlog/fmt/fmt.h"
 
 using namespace dismec::prediction;
 
 EvaluateMetrics::EvaluateMetrics(const LabelList* sparse_labels, const IndexMatrix* sparse_predictions, long num_labels) :
     m_Labels(sparse_labels), m_Predictions(sparse_predictions), m_NumLabels(num_labels) {
-    if(m_Predictions->rows() != m_Labels->size()) {
+    if(m_Predictions->rows() != ssize(*m_Labels)) {
         throw std::invalid_argument("number of predictions does not match number of labels");
     }
 
@@ -146,8 +147,8 @@ void EvaluateMetrics::prepare(long num_threads, long chunk_size) {
 }
 
 void EvaluateMetrics::finalize() {
-    for(int i = 1; i < m_Collectors.size(); ++i) {
-        for(int j = 0; j < m_Collectors[0].size(); ++j) {
+    for(int i = 1; i < ssize(m_Collectors); ++i) {
+        for(int j = 0; j < ssize(m_Collectors[0]); ++j) {
             m_Collectors[0][j]->reduce(*m_Collectors[i][j]);
         }
     }

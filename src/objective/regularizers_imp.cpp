@@ -6,6 +6,7 @@
 #include "regularizers_imp.h"
 #include "regularizers.h"
 #include "utils/hash_vector.h"
+#include "utils/conversion.h"
 
 namespace objective = dismec::objective;
 using dismec::objective::SquaredNormRegularizer;
@@ -146,7 +147,7 @@ namespace {
     DenseRealVector make_vec(std::initializer_list<real_t> values) {
         DenseRealVector vec(values.size());
         auto it = begin(values);
-        for(int i = 0; i < values.size(); ++i) {
+        for(int i = 0; i < ssize(values); ++i) {
             vec.coeffRef(i) = *it;
             ++it;
         }

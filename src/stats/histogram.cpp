@@ -5,6 +5,7 @@
 
 #include "histogram.h"
 #include "collection.h"
+#include "utils/conversion.h"
 #include <nlohmann/json.hpp>
 
 using namespace dismec;
@@ -91,17 +92,17 @@ HistogramStat<Axis>::HistogramStat(int bins, real_t min, real_t max) :
 }
 
 template<class Axis>
-void HistogramStat<Axis>::record(long value) {
-    record(real_t(value));
+void HistogramStat<Axis>::record_int(long value) {
+    record_real(real_t(value));
 }
 
 template<class Axis>
-void HistogramStat<Axis>::record(real_t value) {
+void HistogramStat<Axis>::record_real(real_t value) {
     m_Histogram(value);
 }
 
 template<class Axis>
-void HistogramStat<Axis>::record(const DenseRealVector& vector) {
+void HistogramStat<Axis>::record_vec(const DenseRealVector& vector) {
     for(int i = 0; i < vector.size(); ++i) {
         m_Histogram(transform<Axis>(vector.coeff(i)));
     }
@@ -112,7 +113,7 @@ std::unique_ptr<Statistics> HistogramStat<Axis>::clone() const {
     return std::make_unique<HistogramStat<Axis>>(m_Bins, m_Min, m_Max);
 }
 template<class Axis>
-void HistogramStat<Axis>::merge(const HistogramStat<Axis>& other) {
+void HistogramStat<Axis>::merge_imp(const HistogramStat<Axis>& other) {
     combine_histograms(m_Histogram,  other.m_Histogram);
 }
 
@@ -138,8 +139,8 @@ TaggedHistogramStat<Axis>::TaggedHistogramStat(std::string tag, int max_tag, int
 }
 
 template<class Axis>
-void TaggedHistogramStat<Axis>::record(long value) {
-    record(real_t(value));
+void TaggedHistogramStat<Axis>::record_int(long value) {
+    record_real(real_t(value));
 }
 
 template<class Axis>
@@ -150,19 +151,19 @@ auto TaggedHistogramStat<Axis>::get_active_hist() -> histogram_t& {
     if(tag > m_MaxTag)
         tag = m_MaxTag;
 
-    while(tag >= m_Histograms.size()) {
+    while(tag >= ssize(m_Histograms)) {
         m_Histograms.push_back(make_histogram(Axis(m_Bins, m_Min, m_Max)));
     }
     return m_Histograms[tag];
 }
 
 template<class Axis>
-void TaggedHistogramStat<Axis>::record(real_t value) {
+void TaggedHistogramStat<Axis>::record_real(real_t value) {
     get_active_hist()(value);
 }
 
 template<class Axis>
-void TaggedHistogramStat<Axis>::record(const DenseRealVector& vector) {
+void TaggedHistogramStat<Axis>::record_vec(const DenseRealVector& vector) {
     auto& hist = get_active_hist();
     for(int i = 0; i < vector.size(); ++i) {
         hist(transform<Axis>(vector.coeff(i)));
@@ -175,13 +176,13 @@ std::unique_ptr<Statistics> TaggedHistogramStat<Axis>::clone() const {
 }
 
 template<class Axis>
-void TaggedHistogramStat<Axis>::merge(const TaggedHistogramStat<Axis>& other) {
+void TaggedHistogramStat<Axis>::merge_imp(const TaggedHistogramStat<Axis>& other) {
     m_Histograms.reserve(other.m_Histograms.size());
     while(other.m_Histograms.size() > m_Histograms.size()) {
         m_Histograms.emplace_back(make_histogram(Axis(m_Bins, m_Min, m_Max)));
     }
 
-    for(int i = 0; i < other.m_Histograms.size(); ++i) {
+    for(int i = 0; i < ssize(other.m_Histograms); ++i) {
         combine_histograms(m_Histograms[i], other.m_Histograms[i]);
     }
 }
@@ -189,7 +190,7 @@ void TaggedHistogramStat<Axis>::merge(const TaggedHistogramStat<Axis>& other) {
 template<class Axis>
 nlohmann::json TaggedHistogramStat<Axis>::to_json() const {
     nlohmann::json result;
-    for(int i = 0; i < m_Histograms.size(); ++i) {
+    for(int i = 0; i < ssize(m_Histograms); ++i) {
         auto temp = ::to_json(m_Histograms[i]);
         result["Counts"].push_back(temp["Count"]);
         if ( i == 0 ) {

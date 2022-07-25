@@ -12,7 +12,6 @@
 using namespace dismec;
 
 void apply_tfidf(SparseFeatures& features, const DenseRealVector& idf) {
-    auto* last = features.innerIndexPtr() + features.nonZeros();
     for(int row = 0; row < features.rows(); ++row) {
         for(auto it = SparseFeatures::InnerIterator(features, row); it; ++it) {
             it.valueRef() = (1 + std::log(it.valueRef())) * idf.coeff(it.col());

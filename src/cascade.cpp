@@ -405,7 +405,7 @@ int TrainingProgram::run(int argc, const char** argv)
     std::shared_ptr<const std::vector<std::vector<long>>> shortlist;
     if(!ShortlistFile.empty()) {
         auto stream = std::fstream(ShortlistFile, std::fstream::in);
-        auto result = io::read_binary_matrix_as_lil(stream);
+        auto result = io::read_binary_matrix_as_lol(stream);
         if(result.NumCols != data->num_labels()) {
             spdlog::error("Mismatch between number of labels in shortlist {} and in dataset {}",
                           result.NumCols, data->num_labels());

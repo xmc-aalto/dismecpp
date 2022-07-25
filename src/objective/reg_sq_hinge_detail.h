@@ -34,8 +34,8 @@ namespace dismec {
             const auto *inner_ptr = features.innerIndexPtr();
             const auto *outer_ptr = features.outerIndexPtr();
 
-            int sm1 = static_cast<int>(indices.size()) - 1;
-            for (int i = 0; i < indices.size(); ++i) {
+            long sm1 = ssize(indices) - 1;
+            for (long i = 0; i < ssize(indices); ++i) {
                 int index = indices[i];
                 int next_index = indices[std::min(i + LOOK_AHEAD, sm1)];
                 int next_id = outer_ptr[next_index];
@@ -55,15 +55,15 @@ namespace dismec {
             }
         }
 
-        inline void __attribute__((hot, optimize("-ffast-math")))
+        inline void __attribute__((hot))
         htd_sum_new(const std::vector<int>& indices, Eigen::Ref<DenseRealVector> output,
                     const SparseFeatures& features, const DenseRealVector& costs, const DenseRealVector& direction) {
             const auto *val_ptr = features.valuePtr();
             const auto *inner_ptr = features.innerIndexPtr();
             const auto *outer_ptr = features.outerIndexPtr();
-            long sm1 = to_long(indices.size()) - 1;
+            long sm1 = ssize(indices) - 1;
 
-            for (long i = 0; i < indices.size(); ++i) {
+            for (long i = 0; i < ssize(indices); ++i) {
                 int index = indices[i];
                 int next_index = indices[std::min(i + 2, sm1)];
                 int next_id = outer_ptr[next_index];

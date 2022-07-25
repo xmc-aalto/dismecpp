@@ -56,7 +56,7 @@ namespace dismec
 
         std::string m_TargetFile;
 
-        void add_accu(std::string key, thread_id_t thread, const std::shared_ptr<stats::StatisticsCollection>& accumulator);
+        void add_accu(const std::string& key, thread_id_t thread, const std::shared_ptr<stats::StatisticsCollection>& accumulator);
 
         std::unique_ptr<nlohmann::json> m_Config;
     };

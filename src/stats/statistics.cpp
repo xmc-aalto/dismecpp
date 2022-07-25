@@ -5,11 +5,12 @@
 
 #include "statistics.h"
 #include "collection.h"
+#include "utils/conversion.h"
 #include <nlohmann/json.hpp>
 
 using namespace dismec::stats;
 
-void CounterStat::record(long integer) {
+void CounterStat::record_int(long integer) {
     m_Counter += integer;
 }
 
@@ -17,7 +18,7 @@ std::unique_ptr<Statistics> CounterStat::clone() const {
     return std::make_unique<CounterStat>();
 }
 
-void CounterStat::merge(const CounterStat& other) {
+void CounterStat::merge_imp(const CounterStat& other) {
     m_Counter += other.m_Counter;
 }
 
@@ -25,11 +26,11 @@ nlohmann::json CounterStat::to_json() const {
     return {{"Counter", m_Counter}, {"Type", "Counter"}};
 }
 
-void BasicStat::record(long value) {
+void BasicStat::record_int(long value) {
     record(real_t(value));
 }
 
-void BasicStat::record(real_t value)  {
+void BasicStat::record_real(real_t value)  {
     ++m_Counter;
     m_Sum += value;
     m_SumSquared += value*value;
@@ -39,7 +40,7 @@ std::unique_ptr<Statistics> BasicStat::clone() const {
     return std::make_unique<BasicStat>();
 }
 
-void BasicStat::merge(const BasicStat& other) {
+void BasicStat::merge_imp(const BasicStat& other) {
     m_Counter += other.m_Counter;
     m_Sum += other.m_Sum;
     m_SumSquared += other.m_SumSquared;
@@ -58,18 +59,18 @@ TaggedStat::TaggedStat(std::string tag, int max_tag, std::string transform_name,
     {
 
 }
-void TaggedStat::record(long value) {
+void TaggedStat::record_int(long value) {
     record(real_t(value));
 }
 
-void TaggedStat::record(real_t value)  {
+void TaggedStat::record_real(real_t value)  {
     int tag = m_Tag.get_value();
     if(tag < 0)
         throw std::logic_error("Missing tag!");
     if(tag > m_MaxTag && m_MaxTag >= 0)
         tag = m_MaxTag;
 
-    if(tag >= m_Counters.size()) {
+    if(tag >= ssize(m_Counters)) {
         m_Counters.resize(tag + 1);
         m_Sums.resize(tag + 1);
         m_SumsSquared.resize(tag + 1);
@@ -86,15 +87,15 @@ std::unique_ptr<Statistics> TaggedStat::clone() const {
     return std::make_unique<TaggedStat>(m_Tag.get_name(), m_MaxTag, m_TransformName, m_Transform);
 }
 
-void TaggedStat::merge(const TaggedStat& other) {
-    int other_size = other.m_Counters.size();
-    if(other_size > m_Counters.size()) {
+void TaggedStat::merge_imp(const TaggedStat& other) {
+    auto other_size = ssize(other.m_Counters);
+    if(other_size > ssize(m_Counters)) {
         m_Counters.resize(other_size);
         m_Sums.resize(other_size);
         m_SumsSquared.resize(other_size);
     }
 
-    for(int i = 0; i < other_size; ++i) {
+    for(long i = 0; i < other_size; ++i) {
         m_Counters[i] += other.m_Counters[i];
         m_Sums[i] += other.m_Sums[i];
         m_SumsSquared[i] += other.m_SumsSquared[i];
@@ -114,13 +115,13 @@ MultiStat::MultiStat(std::unordered_map<std::string, std::unique_ptr<Statistics>
 
 }
 
-void MultiStat::record(long value) {
+void MultiStat::record_int(long value) {
     do_record(value);
 }
-void MultiStat::record(real_t value) {
+void MultiStat::record_real(real_t value) {
     do_record(value);
 }
-void MultiStat::record(const DenseRealVector& vector) {
+void MultiStat::record_vec(const DenseRealVector& vector) {
     do_record(vector);
 }
 
@@ -139,7 +140,7 @@ std::unique_ptr<Statistics> MultiStat::clone() const {
     return std::make_unique<MultiStat>(std::move(new_map));
 }
 
-void MultiStat::merge(const MultiStat& other) {
+void MultiStat::merge_imp(const MultiStat& other) {
     for(const auto& entry : m_SubStats) {
         entry.second->merge( *other.m_SubStats.at(entry.first) );
     }
@@ -162,18 +163,18 @@ void MultiStat::setup(const StatisticsCollection& source) {
     }
 }
 
-void FullRecordStat::record(real_t value) {
+void FullRecordStat::record_real(real_t value) {
     m_Data.push_back(value);
 }
 
-void FullRecordStat::record(long value) {
+void FullRecordStat::record_int(long value) {
     m_Data.push_back(value);
 }
 
 std::unique_ptr<Statistics> FullRecordStat::clone() const {
     return std::make_unique<FullRecordStat>();
 }
-void FullRecordStat::merge(const FullRecordStat& other) {
+void FullRecordStat::merge_imp(const FullRecordStat& other) {
     m_Data.reserve(m_Data.size() + other.m_Data.size());
     m_Data.insert(end(m_Data), begin(other.m_Data), end(other.m_Data));
 }
@@ -197,7 +198,7 @@ VectorReductionStat::VectorReductionStat(std::unique_ptr<Statistics> stat, std::
     }
 }
 
-void VectorReductionStat::record(const DenseRealVector& value) {
+void VectorReductionStat::record_vec(const DenseRealVector& value) {
     m_Target->record(real_t{m_Reduction(value)});
 }
 
@@ -205,7 +206,7 @@ std::unique_ptr<Statistics> VectorReductionStat::clone() const {
     return std::make_unique<VectorReductionStat>(m_Target->clone(), m_ReductionName);
 }
 
-void VectorReductionStat::merge(const VectorReductionStat& other) {
+void VectorReductionStat::merge_imp(const VectorReductionStat& other) {
     m_Target->merge(*other.m_Target);
 }
 

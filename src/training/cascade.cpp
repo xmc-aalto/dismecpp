@@ -8,6 +8,7 @@
 #include "solver/newton.h"
 #include "data/data.h"
 #include "data/transform.h"
+#include "utils/conversion.h"
 #include "postproc.h"
 #include "initializer.h"
 #include "model/sparse.h"
@@ -57,7 +58,7 @@ void CascadeTraining::update_minimizer(solvers::Minimizer& base_minimizer, label
     // adjust the epsilon parameter according to number of positives/number of negatives
     std::size_t num_pos = get_data().num_positives(label_id);
     double small_count = static_cast<double>(std::min(num_pos, get_data().num_examples() - num_pos));
-    double epsilon_scale = std::max(small_count, 1.0) / get_data().num_examples();
+    double epsilon_scale = std::max(small_count, 1.0) / static_cast<double>(get_data().num_examples());
     if(m_Shortlist) {
         std::size_t actual_num_pos = 0;
         std::size_t actual_num_neg = 0;
@@ -90,7 +91,7 @@ void CascadeTraining::update_objective(objective::Objective& base_objective, lab
                                                                shortlist);
         objective->update_features(shortlisted_dense, shortlisted_sparse);
         BinaryLabelVector& target_labels = objective->get_label_ref();
-        target_labels.resize(shortlist.size());
+        target_labels.resize(ssize(shortlist));
         auto label_vec = get_data().get_labels(label_id);
         long target_id = 0;
         for(const auto& row : shortlist) {

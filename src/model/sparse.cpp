@@ -6,6 +6,7 @@
 #include "model/sparse.h"
 #include "spdlog/spdlog.h"
 #include "utils/eigen_generic.h"
+#include "utils/conversion.h"
 
 using namespace dismec;
 using namespace dismec::model;
@@ -41,31 +42,31 @@ long SparseModel::num_features() const {
 
 namespace {
     struct PredictVisitor {
-        PredictVisitor(Eigen::Ref<PredictionMatrix> target, const std::vector<SparseRealVector>* weights) :
+        PredictVisitor(const Eigen::Ref<PredictionMatrix>& target, const std::vector<SparseRealVector>* weights) :
             Target(target), Weights(weights) {
 
         }
         void operator()(const GenericInMatrix::DenseColMajorRef& instances) {
-            for(int i = 0; i < Weights->size(); ++i) {
+            for(int i = 0; i < ssize(*Weights); ++i) {
                 Target.col(i) = instances * (*Weights)[i];
             }
         }
 
         void operator()(const GenericInMatrix::DenseRowMajorRef& instances) {
-            for(int i = 0; i < Weights->size(); ++i) {
+            for(int i = 0; i < ssize(*Weights); ++i) {
                 Target.col(i) = instances * (*Weights)[i];
             }
         }
 
         void operator()(const GenericInMatrix::SparseColMajorRef& instances) {
-            for(int i = 0; i < Weights->size(); ++i) {
+            for(int i = 0; i <ssize(*Weights); ++i) {
                 Target.col(i) = instances * (*Weights)[i];
             }
         }
 
         void operator()(const GenericInMatrix::SparseRowMajorRef& instances) {
             types::SparseColMajor<real_t> copy = instances;
-            for(int i = 0; i < Weights->size(); ++i) {
+            for(int i = 0; i < ssize(*Weights); ++i) {
                 Target.col(i) = copy * (*Weights)[i];
             }
         }

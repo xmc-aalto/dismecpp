@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(DiSMEC++)
 
+cmake_policy(SET CMP0077 NEW)
+
 find_package(Threads REQUIRED)
 find_package(Boost REQUIRED)
 
@@ -44,6 +46,8 @@ if(${DOXYGEN_FOUND})
             COMMENT "Generate HTML docs"
     )
 endif()
+
+include(cmake/compile-options.cmake)
 
 # pull in the dependencies which we have included in the deps directory
 set(JSON_BuildTests OFF CACHE INTERNAL "")

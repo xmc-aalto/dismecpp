@@ -22,7 +22,7 @@ void Minimizer::set_logger(std::shared_ptr<spdlog::logger> logger) {
 }
 
 MinimizationResult Minimizer::minimize(objective::Objective& objective, Eigen::Ref<DenseRealVector> init) {
-    std::size_t n = objective.num_variables();
+    long n = objective.num_variables();
     if(init.size() != n) {
         throw std::invalid_argument("Weight vector incompatible with problem size");
     }

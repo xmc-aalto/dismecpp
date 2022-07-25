@@ -101,7 +101,7 @@ namespace dismec::objective {
 
     template<class T>
     PointWiseRegularizer<T>::PointWiseRegularizer(real_t scale, bool ignore_bias) :
-        m_Scale(scale), m_LastWeightIsBias(ignore_bias) {
+        m_LastWeightIsBias(ignore_bias), m_Scale(scale) {
         if(m_Scale < 0) {
             THROW_EXCEPTION(std::logic_error, "Scale must be non-negative");
         }

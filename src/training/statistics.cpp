@@ -7,10 +7,11 @@
 #include "solver/minimizer.h"
 #include "stats/collection.h"
 #include "stats/statistics.h"
-#include "parallel/task.h"  // for thread_id_t
+#include "parallel/thread_id.h"
 #include "initializer.h"
 #include "spec.h"
 #include "data/data.h"
+#include "utils/conversion.h"
 #include <fstream>
 #include <iomanip>
 #include <nlohmann/json.hpp>
@@ -102,7 +103,7 @@ namespace {
     class DefaultGatherer: public ResultStatsGatherer {
     public:
 
-        DefaultGatherer(const TrainingSpec& spec) {
+        explicit DefaultGatherer(const TrainingSpec& spec) : m_Data(&spec.get_data()) {
             declare_stat(STAT_FINAL_LOSS, {"final_loss", "|g|"});
             declare_stat(STAT_FINAL_GRAD, {"final_grad", "loss"});
             declare_stat(STAT_INIT_LOSS, {"initial_loss", "loss"});
@@ -116,12 +117,11 @@ namespace {
             declare_stat(STAT_TRAINING_SHIFT, {"training_shift"});
             declare_tag(TAG_LABEL_ID, "label");
             declare_tag(TAG_LABEL_FREQ, "label_freq");
-            m_Data = &spec.get_data();
         }
 
 
         void start_label(label_id_t label) override {
-            int pos = m_Data->num_positives(label);
+            long pos = m_Data->num_positives(label);
             set_tag(TAG_LABEL_ID, label.to_index());
             set_tag(TAG_LABEL_FREQ, pos);
             record(STAT_LABEL_ID, label.to_index());
@@ -165,9 +165,9 @@ std::unique_ptr<ResultStatsGatherer> TrainingStatsGatherer::create_results_gathe
     return gather;
 }
 
-void TrainingStatsGatherer::add_accu(std::string key, parallel::thread_id_t thread, const std::shared_ptr<stats::StatisticsCollection>& accumulator) {
+void TrainingStatsGatherer::add_accu(const std::string& key, parallel::thread_id_t thread, const std::shared_ptr<stats::StatisticsCollection>& accumulator) {
     std::lock_guard<std::mutex> lck{m_Lock};
-    if(thread.to_index() >= m_PerThreadCollections.size()) {
+    if(thread.to_index() >= ssize(m_PerThreadCollections)) {
         m_PerThreadCollections.resize(thread.to_index() + 1);
     }
     // Iterate over all existing collections. We need the two nested loops to first iterate over
@@ -177,7 +177,9 @@ void TrainingStatsGatherer::add_accu(std::string key, parallel::thread_id_t thre
         entry.second->provide_tags(*accumulator);
     }
     auto result = m_PerThreadCollections.at(thread.to_index()).emplace(key, accumulator);
-    assert(result.second);
+    if(!result.second) {
+        THROW_EXCEPTION(std::runtime_error, "Could not emplace key {} for statistics collection", key);
+    }
 
     if(m_Config->contains(key)) {
         for (auto& entry : m_Config->at(key).items()) {

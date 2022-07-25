@@ -166,7 +166,7 @@ namespace dismec::objective {
                              std::shared_ptr<const GenericFeatureMatrix> sparse_features,
                              MarginFunction phi, DenseRegFunction dr, real_t drs, SparseRegFunction sr, real_t srs) :
              DenseAndSparseLinearBase(std::move(dense_features), std::move(sparse_features)),
-             Phi(std::move(phi)), SparseReg(sr), DenseReg(dr), DenseRegStrength(drs), SparseRegStrength(srs)
+             Phi(std::move(phi)), DenseRegStrength(drs), DenseReg(dr), SparseRegStrength(srs), SparseReg(sr)
         {
 
         }

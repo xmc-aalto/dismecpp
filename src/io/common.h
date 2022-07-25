@@ -10,6 +10,7 @@
 #include "matrix_types.h"
 #include "spdlog/fmt/fmt.h"
 #include "utils/throw_error.h"
+#include "utils/conversion.h"
 
 /*! \file
  * \brief building blocks for io procedures that are used by multiple io subsystems
@@ -23,10 +24,13 @@
 
 namespace dismec::io {
     namespace detail {
+        /// Helper function needed to create error messages. If `c` is a printable character, it returns `c` directly,
+        /// otherwise the returned string contains an escape sequence of a backslash followed by the integer identifying the character.
         std::string print_char(char c);
     }
 
-    /// Parses an integer using `std::strtol`. In contrast to the std function, the output parameter is const here.
+    /// Parses an integer using `std::strtol`. In contrast to the std function, the output parameter is const here, and
+    /// we enforce base 10.
     inline long parse_long(const char* string, const char** out) {
         char* out_ptr = nullptr;
         long result = std::strtol(string, &out_ptr, 10); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
@@ -105,8 +109,8 @@ namespace dismec::io {
     template<class T>
     void binary_dump(std::streambuf& target, const T* begin, const T* end) {
         static_assert(std::is_pod_v<T>, "Can only binary dump POD types");
-        auto num_bytes = (end - begin) * sizeof(T);
-        auto wrote = target.sputn(reinterpret_cast<const char*>(begin), (end - begin) * sizeof(T));
+        std::streamsize num_bytes = (end - begin) * ssizeof<T>;
+        auto wrote = target.sputn(reinterpret_cast<const char*>(begin), num_bytes);
         if(num_bytes != wrote) {
             THROW_ERROR("Expected to write {} bytes, but wrote only {}", num_bytes, wrote);
         }
@@ -115,7 +119,7 @@ namespace dismec::io {
     template<class T>
     void binary_load(std::streambuf& target, T* begin, T* end) {
         static_assert(std::is_pod_v<T>, "Can only binary load POD types");
-        auto num_bytes = (end - begin) * sizeof(T);
+        std::streamsize num_bytes = (end - begin) * ssizeof<T>;
         auto read = target.sgetn(reinterpret_cast<char*>(begin), num_bytes);
         if(num_bytes != read) {
             THROW_ERROR("Expected to read {} bytes, but got only {}", num_bytes, read);
@@ -129,7 +133,7 @@ namespace dismec::io {
     };
 
     /// Given a string containing a matrix header, parses it into rows and columns.
-    /// The input string should contain exactly two positive integers, otherwise and exception will be thrown.
+    /// The input string should contain exactly two positive integers, otherwise an exception will be thrown.
     MatrixHeader parse_header(const std::string& content);
 
     /*!
@@ -144,7 +148,7 @@ namespace dismec::io {
 
     /// Reads a sparse binary matrix file in the format index:1.0 as a list-of-list of the non-zero entries.
     /// The first line of the file should be the shape of the matrix.
-    LoLBinarySparse read_binary_matrix_as_lil(std::istream& source);
+    LoLBinarySparse read_binary_matrix_as_lol(std::istream& source);
 }
 
 #endif //DISMEC_COMMON_H

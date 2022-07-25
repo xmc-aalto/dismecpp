@@ -12,6 +12,7 @@
 #include "parallel/numa.h"
 #include "utils/conversion.h"
 
+using namespace dismec;
 using namespace dismec::parallel;
 
 ParallelRunner::ParallelRunner(long num_threads, long chunk_size) :
@@ -50,12 +51,12 @@ RunResult ParallelRunner::run(TaskGenerator& tasks, long start) {
         num_threads = static_cast<long>(std::thread::hardware_concurrency());
     }
 
-    std::size_t num_tasks = tasks.num_tasks() - start;
-    std::size_t num_chunks = num_tasks / m_ChunkSize;
+    long num_tasks = tasks.num_tasks() - start;
+    long num_chunks = num_tasks / m_ChunkSize;
     if(num_tasks % m_ChunkSize != 0) {
         num_chunks += 1;
     }
-    num_threads = std::min((std::size_t)num_threads, num_chunks);
+    num_threads = std::min(num_threads, num_chunks);
 
     std::atomic<std::size_t> cpu_time{0};
 
@@ -79,33 +80,33 @@ RunResult ParallelRunner::run(TaskGenerator& tasks, long start) {
 
     for(int thread = 0; thread < num_threads; ++thread) {
         workers.emplace_back([&, thread_id=thread_id_t(thread)]()
-                             {
-                                 if(m_BindThreads) {
-                                     distribute.pin_this_thread(thread_id);
-                                 }
+        {
+             if(m_BindThreads) {
+                 distribute.pin_this_thread(thread_id);
+             }
 
-                                 tasks.init_thread(thread_id);
+             tasks.init_thread(thread_id);
 
-                                 while(to_ms(steady_clock::now() - start_time) < m_TimeLimit) {
-                                     // get a new sub-problem
-                                     // see also https://stackoverflow.com/questions/41206861/atomic-increment-and-return-counter
-                                     long search_pos = sub_counter++;
-                                     if(search_pos >= num_chunks) {
-                                         return;
-                                     }
+             while(to_ms(steady_clock::now() - start_time) < m_TimeLimit) {
+                 // get a new sub-problem
+                 // see also https://stackoverflow.com/questions/41206861/atomic-increment-and-return-counter
+                 long search_pos = sub_counter++;
+                 if(search_pos >= num_chunks) {
+                     return;
+                 }
 
-                                     auto task_start_time = steady_clock::now();
+                 auto task_start_time = steady_clock::now();
 
-                                     long begin_task = search_pos * m_ChunkSize + start;
-                                     long end_task = std::min((search_pos + 1) * m_ChunkSize, (long)num_tasks) + start;
+                 long begin_task = search_pos * m_ChunkSize + start;
+                 long end_task = std::min((search_pos + 1) * m_ChunkSize, (long)num_tasks) + start;
 
-                                     log_start(begin_task, end_task);
-                                     tasks.run_tasks(begin_task, end_task, thread_id);
-                                     log_finished(begin_task, end_task);
+                 log_start(begin_task, end_task);
+                 tasks.run_tasks(begin_task, end_task, thread_id);
+                 log_finished(begin_task, end_task);
 
-                                     cpu_time.fetch_add( to_ms(steady_clock::now() - task_start_time).count());
-                                 }
-                             });
+                 cpu_time.fetch_add( to_ms(steady_clock::now() - task_start_time).count());
+             }
+        });
     }
 
     // OK, now we just have to wait for the threads to finnish
@@ -195,7 +196,7 @@ TEST_CASE("run parallel") {
     REQUIRE(res.IsFinished);
 
     // make sure each task ran exactly once
-    for(int s = 0; s < task.check.size(); ++s) {
+    for(int s = 0; s < ssize(task.check); ++s) {
         REQUIRE_MESSAGE(task.check[s] == 1, "error at index " << s);
     }
 }
@@ -211,7 +212,7 @@ TEST_CASE("run chunked parallel with start pos")
     for(int s = 0; s < 5; ++s) {
         REQUIRE(task.check[s] == 0);
     }
-    for(int s = 5; s < task.check.size(); ++s) {
+    for(int s = 5; s < ssize(task.check); ++s) {
         REQUIRE_MESSAGE(task.check[s] == 1, "error at index " << s);
     }
 }
@@ -227,7 +228,7 @@ TEST_CASE("run parallel with timeout") {
     // check that NextTask correctly identifies until where we have done our work
     for(int s = 5; s < res.NextTask; ++s) {
         REQUIRE(task.check[s] == 1);
-    }for(int s = res.NextTask; s < task.check.size(); ++s) {
+    }for(int s = res.NextTask; s < ssize(task.check); ++s) {
         REQUIRE(task.check[s] == 0);
     }
 }

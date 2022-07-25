@@ -27,10 +27,10 @@ namespace dismec {
         [[nodiscard]] std::shared_ptr<GenericFeatureMatrix> edit_features();
 
         /// Get the total number of features, i.e. the number of columns in the feature matrix
-        [[nodiscard]] std::size_t num_features() const noexcept;
+        [[nodiscard]] long num_features() const noexcept;
 
         /// Get the total number of instances, i.e. the number of rows in the feature matrix
-        [[nodiscard]] std::size_t num_examples() const noexcept;
+        [[nodiscard]] long num_examples() const noexcept;
 
         /// Gets the total number of different labels in the dataset.
         /// TODO call this num_classes instead?
@@ -38,11 +38,11 @@ namespace dismec {
 
         /// Gets the number of instances where label `id` is present (=+1)
         /// Throws std::out_of_bounds, if id is not in `[0, num_labels())`.
-        [[nodiscard]] virtual std::size_t num_positives(label_id_t id) const;
+        [[nodiscard]] virtual long num_positives(label_id_t id) const;
 
         /// Gets the number of instances where label `id` is absent (=-1)
         /// Throws std::out_of_bounds, if id is not in `[0, num_labels())`.
-        [[nodiscard]] virtual std::size_t num_negatives(label_id_t id) const;
+        [[nodiscard]] virtual long num_negatives(label_id_t id) const;
 
         /// Gets the label vector (encoded as dense vector with elements from {-1, 1}) for the `id`'th class.
         /// Throws std::out_of_bounds, if id is not in `[0, num_labels())`.
@@ -98,8 +98,8 @@ namespace dismec {
         void get_labels(label_id_t label, Eigen::Ref<BinaryLabelVector> target) const override;
 
         // these are faster than the default implementation
-        [[nodiscard]] std::size_t num_positives(label_id_t id) const override;
-        [[nodiscard]] std::size_t num_negatives(label_id_t id) const override;
+        [[nodiscard]] long num_positives(label_id_t id) const override;
+        [[nodiscard]] long num_negatives(label_id_t id) const override;
 
         [[nodiscard]] const std::vector<long>& get_label_instances(label_id_t label) const;
 

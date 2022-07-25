@@ -6,6 +6,7 @@
 #include "data/data.h"
 #include "nlohmann/json.hpp"
 #include "CLI/CLI.hpp"
+#include "utils/conversion.h"
 #include <numeric>
 #include <random>
 
@@ -56,7 +57,7 @@ int main(int argc, const char** argv) {
     std::partial_sum(label_counts.rbegin(), label_counts.rend(), std::back_inserter(cumulative));
     int target = 10;
     std::cout << cumulative[0] << " " << cumulative[1] << " " << cumulative[cumulative.size() - 1] << "\n";
-    for(int i = 0; i < cumulative.size(); ++i) {
+    for(int i = 0; i < ssize(cumulative); ++i) {
         if(cumulative[i] / target >= cumulative.back() / 100) {
             result["cumulative-" + std::to_string(target)] = i;
             result["cumulative-rel-" + std::to_string(target)] = 100.0 * double(i) / double(data.num_labels());
@@ -75,8 +76,8 @@ int main(int argc, const char** argv) {
 
 double obesity(const std::vector<long>& values, int num_samples) {
     std::ranlux48 rng;
-    std::uniform_int_distribution<long> dist(0, values.size() - 1);
-    std::array<long, 4> sample;
+    std::uniform_int_distribution<long> dist(0, ssize(values) - 1);
+    std::array<long, 4> sample{};
     int larger = 0;
     for(int i = 0; i < num_samples; ++i) {
         for(auto& s : sample)  s = dist(rng);

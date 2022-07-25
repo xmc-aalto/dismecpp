@@ -23,15 +23,15 @@ namespace dismec::stats
         HistogramStat(int bins, real_t min, real_t max);
         ~HistogramStat() override = default;
 
-        void record(long value) override;
-        void record(real_t value) override;
-        void record(const DenseRealVector& vector) override;
-
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const HistogramStat<Axis>& other);
+        void merge_imp(const HistogramStat<Axis>& other);
 
         [[nodiscard]] nlohmann::json to_json() const override;
     private:
+        void record_int(long value) override;
+        void record_real(real_t value) override;
+        void record_vec(const DenseRealVector& vector) override;
+
         boost::histogram::histogram<std::tuple<Axis>> m_Histogram;
 
         // we keep a copy of the constructor parameters for convenience, so we can easily clone!
@@ -46,16 +46,16 @@ namespace dismec::stats
         TaggedHistogramStat(std::string tag, int max_tag, int bins, real_t min, real_t max);
         ~TaggedHistogramStat() override = default;
 
-        void record(long value) override;
-        void record(real_t value) override;
-        void record(const DenseRealVector& vector) override;
-
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const TaggedHistogramStat<Axis>& other);
+        void merge_imp(const TaggedHistogramStat<Axis>& other);
 
         [[nodiscard]] nlohmann::json to_json() const override;
         void setup(const StatisticsCollection& source) override;
     private:
+        void record_int(long value) override;
+        void record_real(real_t value) override;
+        void record_vec(const DenseRealVector& vector) override;
+
         using histogram_t = boost::histogram::histogram<std::tuple<Axis>>;
         std::vector<histogram_t> m_Histograms;
 

@@ -93,25 +93,26 @@ namespace {
         THROW_ERROR("Unknown npy file format version {}.{} -- {}", major, minor, source.pubseekoff(0, std::ios_base::cur, std::ios_base::in));
     };
 
+    long skip_whitespace(std::string_view source, long position) {
+        while(std::isspace(source[position]) != 0 && position < ssize(source)) {
+            ++position;
+        }
+
+        return position;
+    }
+
+    /// This function parses a single element from a python dict literal
     std::pair<std::string_view, std::string_view> read_key_value(std::string_view source) {
-        // This function parses a single element from a python dict literal
+        auto source_end = ssize(source);
 
-        auto skip_ws = [&source](int position){
-            while(std::isspace(source[position]) != 0 && position < source.length()) {
-                ++position;
-            }
-
-            return position;
-        };
-
-        // skip all whitespace
-        int position = skip_ws(0);
-        if(position == source.length()) {
+        // skip all initial whitespace
+        long position = skip_whitespace(source, 0);
+        if(position == source_end) {
             THROW_ERROR("received only whitespace");
         }
 
         char open_quote = source[position];
-        int key_start = position;
+        long key_start = position;
         // next, we should get a dictionary key. This is indicated by quotation marks
         if(open_quote != '"' && open_quote != '\'') {
             THROW_ERROR("Expected begin of string ' or \" for parsing dictionary key. Got {}.", open_quote);
@@ -123,8 +124,8 @@ namespace {
         }
 
         // next, we expect a colon to separate the value
-        position = skip_ws(key_end + 1u);
-        if(position == source.length()) {
+        position = skip_whitespace(source, to_long(key_end) + 1);
+        if(position == source_end) {
             THROW_ERROR("Could not find : that separates key and value");
         }
 
@@ -132,8 +133,8 @@ namespace {
             THROW_ERROR("Expected : to separate key and value, got {}", source[position]);
         }
 
-        position = skip_ws(position + 1);
-        if(position == source.length()) {
+        position = skip_whitespace(source, position + 1);
+        if(position == source_end) {
             THROW_ERROR("Missing feature");
         }
 
@@ -144,9 +145,9 @@ namespace {
         // delimiters. For the intended use case, that should be enough, but
         // it means that this function cannot be used for general npy files
 
-        int value_start = position;
+        long value_start = position;
         char expect_close = 0;
-        while(position < source.length()) {
+        while(position < source_end) {
             char current = source[position];
             if(expect_close == 0) {
                 // if we are not in a nested expression, the end of the current value is reached if we find a comma
@@ -164,7 +165,7 @@ namespace {
                     case '[':
                     case '{':
                     {
-                        for(int i = 0; i < sizeof(openers); ++i) {
+                        for(int i = 0; i < to_long(sizeof(openers)); ++i) {
                             if(openers[i] == current) {
                                 expect_close = closers[i];
                             }
@@ -277,8 +278,8 @@ namespace {
 }
 #include <iostream>
 io::NpyHeaderData io::parse_npy_header(std::streambuf& source) {
-    char magic[MAGIC_SIZE];
-    source.sgetn(magic, MAGIC_SIZE);
+    std::array<char, MAGIC_SIZE> magic{};
+    source.sgetn(magic.data(), MAGIC_SIZE);
     for(int i = 0; i < MAGIC_SIZE; ++i) {
         if(magic[i] != MAGIC[i]) {
             THROW_ERROR("Magic bytes mismatch");

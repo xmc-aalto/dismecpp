@@ -54,30 +54,26 @@ set(LIB_SRC
 set(TESTS_SRC
         io/test.cpp
         io/common_test.cpp
-        objective/reg_sg_hinge_test.cpp)
+        objective/reg_sg_hinge_test.cpp
+        model/dense_test.cpp
+        )
 
-add_library(libdismec_config INTERFACE)
-target_compile_features(libdismec_config INTERFACE cxx_std_17)
-#target_compile_definitions(libdismec INTERFACE EIGEN_USE_BLAS)
+set_source_files_properties(objective/dense_and_sparse.cpp PROPERTIES COMPILE_OPTIONS ${DISMEC_WORKAROUND_GCC8_BUG})
+
 target_include_directories(libdismec_config INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}  ${CMAKE_CURRENT_SOURCE_DIR}/../deps/doctest/doctest)
 target_link_libraries(libdismec_config INTERFACE Eigen3::Eigen Threads::Threads spdlog::spdlog Boost::boost ${BLAS_LIBRARIES} nlohmann_json::nlohmann_json numa atomic)
-
-# on GCC-8, we need to add a link command when using <filesystem>
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-    target_link_libraries(libdismec_config INTERFACE -lstdc++fs)
-endif ()
 
 # prevent multiple compilation
 add_library(libdismec ${LIB_SRC})
 target_link_libraries(libdismec PUBLIC libdismec_config)
-target_compile_definitions(libdismec PUBLIC DOCTEST_CONFIG_DISABLE)
 
 # with GCC-8, lto causes an internal compiler error, so we disable the optimization
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-    set_property(TARGET libdismec PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
-else()
-    set_property(TARGET libdismec PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif ()
+# With clang, we get a "file format not recognized" error during the linking step
+#if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0") OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#    set_property(TARGET libdismec PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+#else()
+#    set_property(TARGET libdismec PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+#endif ()
 
 
 add_executable(unittest test.cpp ${LIB_SRC} ${TESTS_SRC})
@@ -92,6 +88,11 @@ set(PYBIND_SRC
 
 pybind11_add_module(pydismec MODULE pybind.cpp training/training.cpp ${LIB_SRC} ${PYBIND_SRC})
 
+set_target_properties( train predict pydismec cascade
+    PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
+)
+
 set_target_properties( unittest train predict pydismec cascade
         PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -105,9 +106,8 @@ target_link_libraries(cascade PRIVATE CLI11::CLI11 libdismec)
 target_link_libraries(unittest PRIVATE libdismec_config)
 target_link_libraries(pydismec PRIVATE libdismec_config)
 
-# enable or disable tests as desired
-target_compile_definitions(pydismec PRIVATE DOCTEST_CONFIG_DISABLE)
-target_compile_definitions(unittest PRIVATE DOCTEST_CONFIG_VOID_CAST_EXPRESSIONS)
+# enable actually compiling tests. The details are handled in `compile-options.cmake`
+set_target_properties(unittest PROPERTIES DoctestsEnabled ON)
 
 add_subdirectory(tools)
 

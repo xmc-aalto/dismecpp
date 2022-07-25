@@ -73,7 +73,7 @@ io::MatrixHeader io::parse_header(const std::string& content) {
     return {NumRows, NumCols};
 }
 
-io::LoLBinarySparse io::read_binary_matrix_as_lil(std::istream& source) {
+io::LoLBinarySparse io::read_binary_matrix_as_lol(std::istream& source) {
     // for now, labels are assumed to come from a text file
     std::string line_buffer;
     std::getline(source, line_buffer);

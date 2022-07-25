@@ -6,6 +6,8 @@
 #include "metrics.h"
 #include "spdlog/fmt/fmt.h"
 #include "utils/throw_error.h"
+#include "utils/conversion.h"
+#include <boost/predef.h>
 #include <numeric>
 
 using namespace dismec::prediction;
@@ -48,13 +50,13 @@ void ConfusionMatrixRecorder::reduce(const MetricCollectionInterface& other) {
     ALWAYS_ASSERT_EQUAL(num_labels(), other.num_labels(), "Mismatch in number of labels: {} and {}");
 
     m_InstanceCount += other_direct.m_InstanceCount;
-    for(int i = 0; i < m_Confusion.size(); ++i) {
+    for(int i = 0; i < ssize(m_Confusion); ++i) {
         m_Confusion[i] += other_direct.m_Confusion[i];
     }
 }
 
 ConfusionMatrix ConfusionMatrixRecorder::get_confusion_matrix(label_id_t label) const {
-    assert(label.to_index() < m_Confusion.size());
+    assert(label.to_index() < ssize(m_Confusion));
     auto base = m_Confusion[label.to_index()];
     base.TrueNegatives = m_InstanceCount - base.TruePositives - base.FalsePositives - base.FalseNegatives;
     return base;
@@ -102,7 +104,7 @@ InstanceRankedPositives::InstanceRankedPositives(long num_labels, long k, bool n
 #include <iostream>
 InstanceRankedPositives::InstanceRankedPositives(long num_labels, long k, bool normalize, std::vector<double> weights) :
     InstanceAveragedMetric(num_labels), m_K(k), m_Normalize(normalize), m_Weights( std::move(weights) ) {
-    ALWAYS_ASSERT_EQUAL(m_K, m_Weights.size(), "Mismatch between k={} and #weights = {}");
+    ALWAYS_ASSERT_EQUAL(m_K, ssize(m_Weights), "Mismatch between k={} and #weights = {}");
     // Exclusive scan -- prepend a zero
     m_Cumulative.push_back(0.0);
     std::partial_sum(begin(m_Weights), end(m_Weights), std::back_inserter(m_Cumulative));
@@ -110,10 +112,12 @@ InstanceRankedPositives::InstanceRankedPositives(long num_labels, long k, bool n
 
 
 // With -O3 GCC 9 produces an ICE here, so we manually fix the optimization options here
+#if BOOST_COMP_GNUC && BOOST_COMP_GNUC <= BOOST_VERSION_NUMBER(10, 0, 0)
 #pragma GCC push_options
 #pragma GCC optimize("-O1")
+#endif
 void InstanceRankedPositives::update(const pd_info_vec& prediction, const gt_info_vec& labels) {
-    assert(prediction.size() >= m_K);
+    assert(ssize(prediction) >= m_K);
     double correct = 0;
     for(long j = 0; j < m_K; ++j) {
         if(prediction[j].Correct) {
@@ -128,7 +132,9 @@ void InstanceRankedPositives::update(const pd_info_vec& prediction, const gt_inf
 
     accumulate(correct);
 }
+#if BOOST_COMP_GNUC && BOOST_COMP_GNUC <= BOOST_VERSION_NUMBER(10, 0, 0)
 #pragma GCC pop_options
+#endif
 
 std::unique_ptr<MetricCollectionInterface> InstanceRankedPositives::clone() const {
     return std::make_unique<InstanceRankedPositives>(num_labels(), m_K, m_Normalize, m_Weights);
@@ -142,7 +148,7 @@ AbandonmentAtK::AbandonmentAtK(long num_labels, long k) : InstanceAveragedMetric
 }
 
 void AbandonmentAtK::update(const pd_info_vec& prediction, const gt_info_vec& labels) {
-    assert(prediction.size() >= m_K);
+    assert(ssize(prediction) >= m_K);
     double correct = 0.0;
     for(long j = 0; j < m_K; ++j) {
         if(prediction[j].Correct) {
@@ -202,20 +208,19 @@ auto fn = [](const ConfusionMatrix& cm){ return METRIC(cm); };                  
 add_reduction_helper(std::move(name), "{}" SHORTHAND "@{}", reduction, fn);                     \
 }
 
-IMPLEMENT_ADD_METRIC(precision, "P");
-IMPLEMENT_ADD_METRIC(accuracy, "ACC");
-IMPLEMENT_ADD_METRIC(specificity, "SPC");
-IMPLEMENT_ADD_METRIC(balanced_accuracy, "BA");
-IMPLEMENT_ADD_METRIC(informedness, "BM");
-IMPLEMENT_ADD_METRIC(markedness, "MK");
-IMPLEMENT_ADD_METRIC(recall, "R");
-IMPLEMENT_ADD_METRIC(fowlkes_mallows, "FM");
-IMPLEMENT_ADD_METRIC(negative_predictive_value, "NPV");
-IMPLEMENT_ADD_METRIC(matthews, "MCC");
-IMPLEMENT_ADD_METRIC(positive_likelihood_ratio, "LR+");
-IMPLEMENT_ADD_METRIC(negative_likelihood_ratio, "LR-");
-IMPLEMENT_ADD_METRIC(diagnostic_odds_ratio, "DOR");
-
+IMPLEMENT_ADD_METRIC(precision, "P")
+IMPLEMENT_ADD_METRIC(accuracy, "ACC")
+IMPLEMENT_ADD_METRIC(specificity, "SPC")
+IMPLEMENT_ADD_METRIC(balanced_accuracy, "BA")
+IMPLEMENT_ADD_METRIC(informedness, "BM")
+IMPLEMENT_ADD_METRIC(markedness, "MK")
+IMPLEMENT_ADD_METRIC(recall, "R")
+IMPLEMENT_ADD_METRIC(fowlkes_mallows, "FM")
+IMPLEMENT_ADD_METRIC(negative_predictive_value, "NPV")
+IMPLEMENT_ADD_METRIC(matthews, "MCC")
+IMPLEMENT_ADD_METRIC(positive_likelihood_ratio, "LR+")
+IMPLEMENT_ADD_METRIC(negative_likelihood_ratio, "LR-")
+IMPLEMENT_ADD_METRIC(diagnostic_odds_ratio, "DOR")
 
 void MacroMetricReporter::add_f_measure(ReductionType reduction, double beta, std::string name) {
     if(name.empty()) {
@@ -274,18 +279,18 @@ auto MacroMetricReporter::get_values() const -> std::vector<metric_t> {
     for(int l = 0; l < m_ConfusionMatrix->num_labels(); ++l) {
         ConfusionMatrix cm = m_ConfusionMatrix->get_confusion_matrix(label_id_t{l});
         micro += cm;
-        for(int i = 0; i < m_MacroReductions.size(); ++i) {
+        for(int i = 0; i < ssize(m_MacroReductions); ++i) {
             metric[i].second += m_MacroReductions[i].second(cm);
         }
     }
 
     auto normalize = static_cast<double>(m_ConfusionMatrix->num_labels());
     if(normalize != 0) {
-        for(int i = 0; i < m_MacroReductions.size(); ++i) {
+        for(int i = 0; i < ssize(m_MacroReductions); ++i) {
             metric[i].second /= normalize;
         }
     } else {
-        for(int i = 0; i < m_MacroReductions.size(); ++i) {
+        for(int i = 0; i < ssize(m_MacroReductions); ++i) {
             if(metric[i].second != 0) {
                 metric[i].second = std::numeric_limits<double>::quiet_NaN();
             }
@@ -299,6 +304,7 @@ auto MacroMetricReporter::get_values() const -> std::vector<metric_t> {
     return metric;
 }
 
+#ifndef DOCTEST_CONFIG_DISABLE
 #include "doctest.h"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
@@ -383,3 +389,4 @@ TEST_CASE("coverage_at_k") {
 }
 */
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+#endif

@@ -20,6 +20,67 @@
 
 using namespace dismec;
 
+
+prediction::MacroMetricReporter* add_macro_metrics(prediction::EvaluateMetrics& metrics, int k) {
+    auto* macro = metrics.add_macro_at_k(k);
+    macro->add_coverage(0.0);
+    macro->add_confusion_matrix();
+    macro->add_precision(prediction::MacroMetricReporter::MACRO);
+    macro->add_precision(prediction::MacroMetricReporter::MICRO);
+    macro->add_recall(prediction::MacroMetricReporter::MACRO);
+    macro->add_recall(prediction::MacroMetricReporter::MICRO);
+    macro->add_f_measure(prediction::MacroMetricReporter::MACRO);
+    macro->add_f_measure(prediction::MacroMetricReporter::MICRO);
+    macro->add_accuracy(prediction::MacroMetricReporter::MICRO);
+    macro->add_accuracy(prediction::MacroMetricReporter::MACRO);
+    macro->add_balanced_accuracy(prediction::MacroMetricReporter::MICRO);
+    macro->add_balanced_accuracy(prediction::MacroMetricReporter::MACRO);
+    macro->add_specificity(prediction::MacroMetricReporter::MICRO);
+    macro->add_specificity(prediction::MacroMetricReporter::MACRO);
+    macro->add_informedness(prediction::MacroMetricReporter::MICRO);
+    macro->add_informedness(prediction::MacroMetricReporter::MACRO);
+    macro->add_markedness(prediction::MacroMetricReporter::MICRO);
+    macro->add_markedness(prediction::MacroMetricReporter::MACRO);
+    macro->add_fowlkes_mallows(prediction::MacroMetricReporter::MICRO);
+    macro->add_fowlkes_mallows(prediction::MacroMetricReporter::MACRO);
+    macro->add_negative_predictive_value(prediction::MacroMetricReporter::MICRO);
+    macro->add_negative_predictive_value(prediction::MacroMetricReporter::MACRO);
+    macro->add_matthews(prediction::MacroMetricReporter::MICRO);
+    macro->add_matthews(prediction::MacroMetricReporter::MACRO);
+    macro->add_positive_likelihood_ratio(prediction::MacroMetricReporter::MICRO);
+    macro->add_positive_likelihood_ratio(prediction::MacroMetricReporter::MACRO);
+    macro->add_negative_likelihood_ratio(prediction::MacroMetricReporter::MICRO);
+    macro->add_negative_likelihood_ratio(prediction::MacroMetricReporter::MACRO);
+    macro->add_diagnostic_odds_ratio(prediction::MacroMetricReporter::MICRO);
+    macro->add_diagnostic_odds_ratio(prediction::MacroMetricReporter::MACRO);
+    return macro;
+};
+
+void setup_metrics(prediction::EvaluateMetrics& metrics, int top_k) {
+    metrics.add_precision_at_k(1);
+    metrics.add_abandonment_at_k(1);
+    metrics.add_dcg_at_k(1, false);
+    metrics.add_dcg_at_k(1, true);
+
+    add_macro_metrics(metrics, 1);
+
+    if(top_k >= 3) {
+        metrics.add_precision_at_k(3);
+        metrics.add_abandonment_at_k(3);
+        metrics.add_dcg_at_k(3, false);
+        metrics.add_dcg_at_k(3, true);
+        add_macro_metrics(metrics, 3);
+    }
+    if(top_k >= 5) {
+        metrics.add_precision_at_k(5);
+        metrics.add_abandonment_at_k(5);
+        metrics.add_dcg_at_k(5, false);
+        metrics.add_dcg_at_k(5, true);
+        add_macro_metrics(metrics, 5);
+    }
+}
+
+
 int main(int argc, const char** argv) {
     CLI::App app{"DiSMEC"};
 
@@ -40,7 +101,7 @@ int main(int argc, const char** argv) {
     app.add_option("--save-metrics", save_metrics, "Target file in which the metric values are saved");
     app.add_option("--topk, --top-k", top_k, "Only the top k predictions will be saved. "
                                              "Set to -1 if you need all predictions. (Warning: This may result in very large files!)");
-    int Verbose;
+    int Verbose = 0;
     app.add_flag("-v", Verbose);
 
     try {
@@ -55,7 +116,7 @@ int main(int argc, const char** argv) {
     if(Verbose > 0)
         runner.set_logger(spdlog::default_logger());
 
-    runner.set_chunk_size(1024);
+    runner.set_chunk_size(PREDICTION_RUN_CHUNK_SIZE);
 
     if(top_k > 0) {
         io::PartialModelLoader loader(model_file, io::PartialModelLoader::DEFAULT);
@@ -92,9 +153,12 @@ int main(int argc, const char** argv) {
                     return std::shared_ptr<dismec::model::Model>{};
                 }
             });
-            auto start_time = std::chrono::steady_clock::now();
-            runner.run(task);
-            spdlog::info("Finished prediction in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count());
+            auto result = runner.run(task);
+            if(!result.IsFinished) {
+                spdlog::error("Something went wrong, prediction computation was not finished!");
+                std::exit(1);
+            }
+            spdlog::info("Finished prediction in {}s", result.Duration.count());
             if(wf_it == loader.num_weight_files()) {
                 break;
             }
@@ -107,64 +171,10 @@ int main(int argc, const char** argv) {
                                                 task.get_top_k_indices());
 
         prediction::EvaluateMetrics metrics{&examples_to_labels, &task.get_top_k_indices(), test_set->num_labels()};
-        metrics.add_precision_at_k(1);
-        metrics.add_abandonment_at_k(1);
-        metrics.add_dcg_at_k(1, false);
-        metrics.add_dcg_at_k(1, true);
-
-        auto add_macro_metrics = [&](int k) {
-            auto* macro = metrics.add_macro_at_k(k);
-            macro->add_coverage(0.0);
-            macro->add_confusion_matrix();
-            macro->add_precision(prediction::MacroMetricReporter::MACRO);
-            macro->add_precision(prediction::MacroMetricReporter::MICRO);
-            macro->add_recall(prediction::MacroMetricReporter::MACRO);
-            macro->add_recall(prediction::MacroMetricReporter::MICRO);
-            macro->add_f_measure(prediction::MacroMetricReporter::MACRO);
-            macro->add_f_measure(prediction::MacroMetricReporter::MICRO);
-            macro->add_accuracy(prediction::MacroMetricReporter::MICRO);
-            macro->add_accuracy(prediction::MacroMetricReporter::MACRO);
-            macro->add_balanced_accuracy(prediction::MacroMetricReporter::MICRO);
-            macro->add_balanced_accuracy(prediction::MacroMetricReporter::MACRO);
-            macro->add_specificity(prediction::MacroMetricReporter::MICRO);
-            macro->add_specificity(prediction::MacroMetricReporter::MACRO);
-            macro->add_informedness(prediction::MacroMetricReporter::MICRO);
-            macro->add_informedness(prediction::MacroMetricReporter::MACRO);
-            macro->add_markedness(prediction::MacroMetricReporter::MICRO);
-            macro->add_markedness(prediction::MacroMetricReporter::MACRO);
-            macro->add_fowlkes_mallows(prediction::MacroMetricReporter::MICRO);
-            macro->add_fowlkes_mallows(prediction::MacroMetricReporter::MACRO);
-            macro->add_negative_predictive_value(prediction::MacroMetricReporter::MICRO);
-            macro->add_negative_predictive_value(prediction::MacroMetricReporter::MACRO);
-            macro->add_matthews(prediction::MacroMetricReporter::MICRO);
-            macro->add_matthews(prediction::MacroMetricReporter::MACRO);
-            macro->add_positive_likelihood_ratio(prediction::MacroMetricReporter::MICRO);
-            macro->add_positive_likelihood_ratio(prediction::MacroMetricReporter::MACRO);
-            macro->add_negative_likelihood_ratio(prediction::MacroMetricReporter::MICRO);
-            macro->add_negative_likelihood_ratio(prediction::MacroMetricReporter::MACRO);
-            macro->add_diagnostic_odds_ratio(prediction::MacroMetricReporter::MICRO);
-            macro->add_diagnostic_odds_ratio(prediction::MacroMetricReporter::MACRO);
-            return macro;
-        };
-        add_macro_metrics(1);
-
-        if(top_k >= 3) {
-            metrics.add_precision_at_k(3);
-            metrics.add_abandonment_at_k(3);
-            metrics.add_dcg_at_k(3, false);
-            metrics.add_dcg_at_k(3, true);
-            add_macro_metrics(3);
-        }
-        if(top_k >= 5) {
-            metrics.add_precision_at_k(5);
-            metrics.add_abandonment_at_k(5);
-            metrics.add_dcg_at_k(5, false);
-            metrics.add_dcg_at_k(5, true);
-            add_macro_metrics(5);
-        }
+        setup_metrics(metrics, top_k);
 
         spdlog::info("Calculating metrics");
-        runner.set_chunk_size(4096);
+        runner.set_chunk_size(PREDICTION_METRICS_CHUNK_SIZE);
         auto result_info = runner.run(metrics);
         spdlog::info("Calculated metrics in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(result_info.Duration).count());
 
@@ -210,12 +220,22 @@ int main(int argc, const char** argv) {
         std::cout << fmt::format("F1:           {:.3}%\n", percentage(tp, tp + (fp + fn) / 2));
 
     } else {
+        spdlog::error("Full predictions are currently not supported");
+        exit(1);
+        /*
         spdlog::info("Reading model file from '{}'", model_file);
         auto model = io::load_model(model_file);
 
         spdlog::info("Calculating full predictions");
         prediction::FullPredictionTaskGenerator task(test_set.get(), model);
         auto result = runner.run(task);
-        auto &predictions = task.get_predictions();
+        if(!result.IsFinished) {
+            spdlog::error("Something went wrong, prediction computation was not finished!");
+            std::exit(1);
+        }
+        const auto& predictions = task.get_predictions();
+        */
+
+        // TODO fix handling of full predictions
     }
 }

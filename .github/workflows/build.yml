@@ -1,0 +1,95 @@
+# Builds the project in a variety of different configurations
+
+name: Build
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+        os: [ubuntu-22.04]
+        # gcc-9 and clang-12 are tested with Ubuntu-20.04; gcc-8 and clang-12 with Ubuntu-18.04
+        compiler: [gcc-10, gcc-11, gcc-12, clang-11, clang-13, clang-14]
+        include:
+          # Ubuntu 18
+          - os: ubuntu-18.04
+            compiler: gcc-8
+            build_type: Debug
+          - os: ubuntu-18.04
+            compiler: gcc-8
+            build_type: Release
+          - os: ubuntu-18.04
+            compiler: clang-10
+            build_type: Debug
+          - os: ubuntu-18.04
+            compiler: clang-10
+            build_type: Release
+          # Ubuntu 20
+          - os: ubuntu-20.04
+            compiler: gcc-9
+            build_type: Debug
+          - os: ubuntu-20.04
+            compiler: gcc-9
+            build_type: Release
+          - os: ubuntu-20.04
+            compiler: clang-12
+            build_type: Debug
+          - os: ubuntu-20.04
+            compiler: clang-12
+            build_type: Release
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Checkout the repository, making sure we recursively get the git submodules which contain our dependencies
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install Compiler and Boost
+        run: |
+          INSTALL=`python .github/toolchain.py install ${{matrix.compiler}}` 
+          sudo apt -qq install -q -y ${INSTALL} libboost-all-dev
+          CXX=`python .github/toolchain.py cxx ${{matrix.compiler}}` 
+          echo "CXX=${CXX}" >> $GITHUB_ENV
+          CC=`python .github/toolchain.py cc ${{matrix.compiler}}` 
+          echo "CC=${CC}" >> $GITHUB_ENV
+          echo "CXXFLAGS=-Werror" >> $GITHUB_ENV
+          echo "BUILD_TYPE=${{matrix.build_type}}" >> $GITHUB_ENV
+
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory, using the build type as set up
+        run: cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      # Ideally, we would like to specify --parallel as a built option, but this leads to sporadic OOM kills
+      # that cause the jobs to fail. In any case, due to LTO a large fraction of built time is consumed by linking
+
+      # use separate script steps for the different targets to make it easier to pinpoint problems if something goes wrong
+      - name: Build Training and Prediction
+        run: cmake --build ./build --config ${{env.BUILD_TYPE}} --target train predict
+
+      - name: Build Tools
+        run: cmake --build ./build --config ${{env.BUILD_TYPE}} --target tfidf labelstats
+
+      - name: Build Python Bindings
+        run: cmake --build ./build --config ${{env.BUILD_TYPE}} --target pydismec
+
+      - name: Build Unit Tests
+        run: cmake --build ./build --config ${{env.BUILD_TYPE}} --target unittest
+
+      # Since compiling is much more computationally intensive than the unit tests, we might as well run them
+      # for all the different configurations we've compiled for.
+      - name: Run Unit Tests
+        run: ./build/bin/unittest

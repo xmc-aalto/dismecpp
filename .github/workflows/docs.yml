@@ -1,10 +1,10 @@
 name: Doxygen
 # see https://gist.github.com/shundhammer/ed359db0d9329d4db551528256060d2a
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
-      - docs
 permissions:
   contents: write
 

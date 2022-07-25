@@ -37,7 +37,7 @@ dismec::MultiLabelData io::read_slice_dataset(std::istream& features, std::istre
     spdlog::stopwatch timer;
     DenseFeatures feature_matrix = load_features(features);
 
-    auto label_data = read_binary_matrix_as_lil(labels);
+    auto label_data = read_binary_matrix_as_lol(labels);
 
     if(label_data.NumRows != feature_matrix.rows()) {
         THROW_ERROR("Mismatch between number of examples in feature file ({}) and in label file ({})",

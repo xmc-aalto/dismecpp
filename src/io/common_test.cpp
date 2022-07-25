@@ -7,8 +7,6 @@
 #include "doctest.h"
 using namespace dismec;
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "readability-magic-numbers"
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-function-cognitive-complexity)
 
 /*!
@@ -170,7 +168,7 @@ TEST_CASE("binary dump/load") {
     buffer.pubseekpos(0);
     std::vector<float> load(data.size());
     io::binary_load(buffer, &*(load.begin()), &*(load.end()));
-    for(int i = 0; i < data.size(); ++i) {
+    for(int i = 0; i < ssize(data); ++i) {
         CHECK(data[i] == load[i]);
     }
 }
@@ -208,4 +206,3 @@ TEST_CASE("parse invalid header") {
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-function-cognitive-complexity)
-#pragma clang diagnostic pop

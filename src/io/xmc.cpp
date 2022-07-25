@@ -166,7 +166,7 @@ namespace {
                            std::vector<std::vector<long>>& label_buffer)
     {
         std::string line_buffer;
-        auto num_labels = label_buffer.size();
+        auto num_labels = ssize(label_buffer);
         auto num_features = feature_buffer.cols();
         auto num_examples = feature_buffer.rows();
         long example = 0;
@@ -234,9 +234,9 @@ dismec::MultiLabelData dismec::io::read_xmc_dataset(std::istream& source, std::s
                  name, header.NumExamples, header.NumFeatures, header.NumLabels);
 
     std::vector<long> features_per_example = count_features_per_example(source, header.NumExamples);
-    if (features_per_example.size() != header.NumExamples) {
-        throw std::runtime_error(fmt::format("Dataset '{}' declared {} examples, but {} where found!",
-                                             name, header.NumExamples, features_per_example.size()));
+    if (ssize(features_per_example) != header.NumExamples) {
+        THROW_EXCEPTION(std::runtime_error, "Dataset '{}' declared {} examples, but {} where found!",
+                                             name, header.NumExamples, features_per_example.size());
     }
 
     // reset to beginning
@@ -279,8 +279,9 @@ namespace {
             return stream;
         }
 
-        // size is > 0, so -1 is safe
-        for(int i = 0; i < labels.size() - 1; ++i) {
+        // size is > 0, so this code is safe
+        auto all_but_one = ssize(labels) - 1;
+        for(int i = 0; i < all_but_one; ++i) {
             stream << labels[i] << ',';
         }
         // no trailing space

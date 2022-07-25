@@ -188,6 +188,7 @@ std::unique_ptr<GenericLinearClassifier> objective::make_huber_hinge(std::shared
     return make_gen_lin_classifier<HuberPhi>(std::move(X), std::move(regularizer), epsilon);
 }
 
+#ifndef DOCTEST_CONFIG_DISABLE
 #include "doctest.h"
 #include "regularizers_imp.h"
 #include "reg_sq_hinge.h"
@@ -386,3 +387,5 @@ TEST_CASE("generic squared hinge") {
         do_check(2.0);
     }
 }
+
+#endif

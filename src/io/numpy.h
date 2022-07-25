@@ -56,8 +56,8 @@ namespace dismec::io {
     struct NpyHeaderData {
         std::string DataType;       //!< The data type `descr`
         bool ColumnMajor;           //!< Whether the data is column major (Fortran)
-        std::size_t Rows;           //!< The number of rows in the data
-        std::size_t Cols;           //!< The number of columns in the data. This will be 0 if the data is a
+        long Rows;                  //!< The number of rows in the data
+        long Cols;                  //!< The number of columns in the data. This will be 0 if the data is a
                                     //!< one-dimensional array.
     };
 

@@ -69,9 +69,9 @@ namespace dismec::stats {
         // this overload is provided to prevent the int -> long / float ambiguity
         void record(int integer) { record(long(integer)); }
 
-        virtual void record(long integer) { throw std::logic_error("Not implemented"); }
-        virtual void record(real_t real) { throw std::logic_error("Not implemented"); }
-        virtual void record(const DenseRealVector& vector) { throw std::logic_error("Not implemented"); }
+        void record(long integer) { record_int(integer); }
+        void record(real_t real) { record_real(real); }
+        void record(const DenseRealVector& vector) { record_vec(vector); }
 
         [[nodiscard]] virtual std::unique_ptr<Statistics> clone() const = 0;
 
@@ -96,6 +96,12 @@ namespace dismec::stats {
 
         /// Converts the statistics current value into a json object.
         [[nodiscard]] virtual nlohmann::json to_json() const = 0;
+
+    private:
+        // Virtual functions to actually implement.
+        virtual void record_int(long integer) { throw std::logic_error("Not implemented"); }
+        virtual void record_real(real_t real) { throw std::logic_error("Not implemented"); }
+        virtual void record_vec(const DenseRealVector& vector) { throw std::logic_error("Not implemented"); }
     };
 
     /*!
@@ -122,10 +128,10 @@ namespace dismec::stats {
     public:
         void merge(const Statistics& other) override {
             static_assert(std::is_final_v<Derived>, "Derived needs to be declared final, because further derived classes would break the merge code.");
-            static_cast<Derived*>(this)->merge(dynamic_cast<const Derived&>(other));
+            static_cast<Derived*>(this)->merge_imp(dynamic_cast<const Derived&>(other));
         }
 
-        void record(const DenseRealVector& vector) override {
+        void record_vec(const DenseRealVector& vector) override {
             for(int i = 0; i < vector.size(); ++i) {
                 static_cast<Derived*>(this)->record(vector.coeff(i));
             }

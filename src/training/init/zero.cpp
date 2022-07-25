@@ -11,7 +11,9 @@ using namespace dismec::init;
 namespace dismec::init {
     class ZeroInitializer : public WeightsInitializer {
     public:
-        void get_initial_weight(label_id_t label_id, Eigen::Ref<DenseRealVector> target, objective::Objective& objective) override {
+        void get_initial_weight([[maybe_unused]] label_id_t label_id,
+                                Eigen::Ref<DenseRealVector> target,
+                                [[maybe_unused]] objective::Objective& objective) override {
             target.setZero();
         }
     };
@@ -24,7 +26,7 @@ namespace dismec::init {
 }
 
 std::unique_ptr<WeightsInitializer> ZeroInitializationStrategy::make_initializer(
-        const std::shared_ptr<const GenericFeatureMatrix>& features) const {
+    [[maybe_unused]] const std::shared_ptr<const GenericFeatureMatrix>& features) const {
     return std::make_unique<ZeroInitializer>();
 }
 

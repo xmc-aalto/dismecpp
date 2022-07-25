@@ -9,7 +9,7 @@
 using namespace dismec;
 using dismec::solvers::CGMinimizer;
 
-CGMinimizer::CGMinimizer(std::size_t num_vars) : m_Size(num_vars) {
+CGMinimizer::CGMinimizer(long num_vars) : m_Size(num_vars) {
     m_A_times_d = DenseRealVector(num_vars);
     m_S = DenseRealVector(num_vars);
     m_Residual = DenseRealVector(num_vars);
@@ -35,7 +35,7 @@ long CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVec
     real_t gMinv_norm = std::sqrt(zT_dot_r);                 // = sqrt(-b^T / M b)
     real_t cg_tol = std::min(m_Epsilon, std::sqrt(gMinv_norm));
 
-    long max_cg_iter = std::max(m_Size, std::size_t(CG_MIN_ITER_BOUND));
+    long max_cg_iter = std::max(m_Size, CG_MIN_ITER_BOUND);
     for(long cg_iter = 1; cg_iter <= max_cg_iter; ++cg_iter) {
         A(m_Conjugate, m_A_times_d);
         real_t dAd = m_Conjugate.dot(m_A_times_d);

@@ -1,4 +1,5 @@
 # DiSMEC++
+[![Build](https://github.com/xmc-aalto/dismecpp/actions/workflows/build.yml/badge.svg)](https://github.com/xmc-aalto/dismecpp/actions/workflows/build.yml)
 [![Testing](https://github.com/xmc-aalto/dismecpp/actions/workflows/test.yml/badge.svg)](https://github.com/xmc-aalto/dismecpp/actions/workflows/test.yml)
 
 A software package for large-scale linear multilabel classification. `DiSMEC++` is a new implementation
@@ -89,6 +90,12 @@ data and compares the resulting model with reference weights. As there is no uni
 for the learning problem, a failure of this test does not necessarily mean that a code change is breaking things -- but
 it indicates that the change should be given close attention and additional testing with other datasets, to ensure that
 there are no regressions. To run these tests manually, use the `test/eurlex-test.py` script provided in this repository.
+
+The github CI tests ensure that, with selective warning suppression, the code can be compiled on gcc versions 8 to 12 
+and clang 10 to 14 with `-Wall -Werror`. Building is tested on Ubuntu versions `18.04`, `20.04` and `22.04`, in both
+`Debug` and `Release` configuration.
+The current status of the builds (including unit tests) is 
+[![Build](https://github.com/xmc-aalto/dismecpp/actions/workflows/build.yml/badge.svg)](https://github.com/xmc-aalto/dismecpp/actions/workflows/build.yml).
 
 ## Directories
 ### src

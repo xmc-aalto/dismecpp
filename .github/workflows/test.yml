@@ -1,20 +1,12 @@
-name: Testing
+name: Test
 on: [push, pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    strategy:
-      matrix:
-        os: [ ubuntu-18.04, ubuntu-20.04, ubuntu-22.04 ]
-    runs-on: ${{ matrix.os }}
-
+    runs-on: ubuntu-22.04
     steps:
       # Checkout the repository, making sure we recursively get the git submodules which contain our dependencies
       - uses: actions/checkout@v3
@@ -25,14 +17,6 @@ jobs:
       - name: Install Dependencies
         run: sudo apt -qq install -y libboost-all-dev
 
-      # On Ubuntu 18, we need to install a 'newer' compiler. GCC-8 is the oldest we want to support.
-      - name: Install Compiler
-        if: ${{ matrix.os  == 'ubuntu-18.04' }}
-        run: |
-          sudo apt -qq install -y gcc-8 g++-8
-          echo "CC=gcc-8" >> $GITHUB_ENV
-          echo "CXX=g++-8" >> $GITHUB_ENV
-
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory, using the build type as set up
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -40,28 +24,13 @@ jobs:
       # Ideally, we would like to specify --parallel as a built option, but this leads to sporadic OOM kills
       # that cause the jobs to fail. In any case, due to LTO a large fraction of built time is consumed by linkin
 
-      # use separate script steps for the different targets to make it easier to pinpoint problems if something goes wrong
-      - name: Build Training and Prediction
+      #
+      - name: Building
         # Build the train and predict executables with the given settings
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target train predict
-        timeout-minutes: 5
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-      - name: Build Tools
-        # Build the tool executables
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target tfidf labelstats
-
-      - name: Build Python Bindings
-        # Build the python bindings
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target pydismec
-
-      - name: Build Test
-        # Build the unit tests with the given settings
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target unittest
-
-      # only store the test file for the latest ubuntu
       - name: Upload unit test file
         uses: actions/upload-artifact@v3
-        if: ${{ matrix.os  == 'ubuntu-22.04' }}
         with:
           name: binaries
           path: ${{github.workspace}}/build/bin/

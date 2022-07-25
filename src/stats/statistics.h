@@ -15,10 +15,10 @@ namespace dismec::stats {
     class CounterStat final : public StatImplBase<CounterStat> {
     public:
         ~CounterStat() override = default;
-        void record(long integer) override;
+        void record_int(long integer) override;
 
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const CounterStat& other);
+        void merge_imp(const CounterStat& other);
         [[nodiscard]] nlohmann::json to_json() const override;
     private:
         long m_Counter = 0;
@@ -27,11 +27,11 @@ namespace dismec::stats {
     class BasicStat final : public StatImplBase<BasicStat> {
     public:
         ~BasicStat() override = default;
-        void record(long value) override;
-        void record(real_t value) override;
+        void record_int(long value) override;
+        void record_real(real_t value) override;
 
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const BasicStat& other);
+        void merge_imp(const BasicStat& other);
         [[nodiscard]] nlohmann::json to_json() const override;
     private:
         long m_Counter = 0;
@@ -43,11 +43,11 @@ namespace dismec::stats {
     public:
         TaggedStat(std::string tag, int max_tag, std::string transform_name = {}, std::function<double(double)> transform = {});
         ~TaggedStat() override = default;
-        void record(long value) override;
-        void record(real_t value) override;
+        void record_int(long value) override;
+        void record_real(real_t value) override;
 
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const TaggedStat& other);
+        void merge_imp(const TaggedStat& other);
         [[nodiscard]] nlohmann::json to_json() const override;
 
         void setup(const StatisticsCollection& source) override;
@@ -67,12 +67,12 @@ namespace dismec::stats {
     public:
         MultiStat(std::unordered_map<std::string, std::unique_ptr<Statistics>> ss);
         ~MultiStat() override = default;
-        void record(long value) override;
-        void record(real_t value) override;
-        void record(const DenseRealVector& vector) override;
+        void record_int(long value) override;
+        void record_real(real_t value) override;
+        void record_vec(const DenseRealVector& vector) override;
 
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const MultiStat& other);
+        void merge_imp(const MultiStat& other);
         [[nodiscard]] nlohmann::json to_json() const override;
 
         void setup(const StatisticsCollection& source) override;
@@ -89,10 +89,10 @@ namespace dismec::stats {
         FullRecordStat() = default;
         ~FullRecordStat() override = default;
 
-        void record(long value) override;
-        void record(real_t value) override;
+        void record_int(long value) override;
+        void record_real(real_t value) override;
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const FullRecordStat& other);
+        void merge_imp(const FullRecordStat& other);
         [[nodiscard]] nlohmann::json to_json() const override;
 
     private:
@@ -106,9 +106,9 @@ namespace dismec::stats {
 
         // this is needed so that the default implementation for vector recording in StatImplBase does not cause an error.
         using Statistics::record;
-        void record(const DenseRealVector& value) override;
+        void record_vec(const DenseRealVector& value) override;
         [[nodiscard]] std::unique_ptr<Statistics> clone() const override;
-        void merge(const VectorReductionStat& other);
+        void merge_imp(const VectorReductionStat& other);
         [[nodiscard]] nlohmann::json to_json() const override;
 
     private:

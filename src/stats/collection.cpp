@@ -5,6 +5,7 @@
 
 #include "collection.h"
 #include "spdlog/spdlog.h"
+#include "utils/conversion.h"
 
 using namespace dismec::stats;
 
@@ -21,7 +22,7 @@ void StatisticsCollection::disable(stats::stat_id_t stat) {
 namespace {
     stat_id_t str_to_id(const std::string& str, const std::vector<StatisticMetaData>& names) {
         auto dist = std::distance(begin(names), std::find_if(begin(names), end(names), [&](auto&& v){ return v.Name == str; }));
-        if(dist < 0 || dist >= names.size()) {
+        if(dist < 0 || dist >= dismec::ssize(names)) {
             throw std::invalid_argument("No statistics of the given name has been declared.");
         }
         return stat_id_t{dist};
@@ -37,10 +38,10 @@ void StatisticsCollection::disable(const std::string& stat) {
 }
 
 void StatisticsCollection::declare_stat(stat_id_t index, StatisticMetaData meta) {
-    if(index.to_index() < m_Enabled.size()) {
+    if(index.to_index() < ssize(m_Enabled)) {
         throw std::invalid_argument("A stat with the given id already exists");
     }
-    if(index.to_index() != m_Enabled.size()) {
+    if(index.to_index() != ssize(m_Enabled)) {
         throw std::invalid_argument("Currently, stats must be declared consecutively!");
     }
 
@@ -84,10 +85,10 @@ bool StatisticsCollection::is_enabled_by_name(const std::string& name) const {
 }
 
 void StatisticsCollection::declare_tag(tag_id_t index, std::string name) {
-    if(index.to_index() < m_TagValues.size()) {
+    if(index.to_index() < ssize(m_TagValues)) {
         throw std::invalid_argument("A tag with the given id already exists");
     }
-    if(index.to_index() != m_TagValues.size()) {
+    if(index.to_index() != ssize(m_TagValues)) {
         throw std::invalid_argument("Currently, tags must be declared consecutively!");
     }
 
@@ -142,7 +143,7 @@ namespace {
             __builtin_unreachable();
         };
 
-        void record(long integer) override { LastValue = integer; }
+        void record_int(long integer) override { LastValue = integer; }
 
         long LastValue;
     };

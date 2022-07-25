@@ -26,7 +26,7 @@ namespace dismec::solvers {
         /// argument is an (potentially uninitialized) output argument in which to place the product.
         using MatrixVectorProductFn = std::function<void(const DenseRealVector &, Eigen::Ref<DenseRealVector>)>;
 
-        explicit CGMinimizer(std::size_t num_vars);
+        explicit CGMinimizer(long num_vars);
 
         /// Solves `Ax+b=0`. returns the number of iterations
         long minimize(const MatrixVectorProductFn &A, const DenseRealVector &b, const DenseRealVector &M);
@@ -43,7 +43,7 @@ namespace dismec::solvers {
     private:
         long do_minimize(const MatrixVectorProductFn &A, const DenseRealVector &b, const DenseRealVector &M);
 
-        std::size_t m_Size;
+        long m_Size;
         real_t m_Epsilon = CG_DEFAULT_EPSILON;
 
         // vector caches to prevent allocations

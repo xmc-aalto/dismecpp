@@ -5,15 +5,16 @@
 
 #include <fstream>
 #include "data.h"
+#include "utils/conversion.h"
 #include "spdlog/spdlog.h"
 
 using namespace dismec;
 
-std::size_t DatasetBase::num_positives(label_id_t id) const {
+long DatasetBase::num_positives(label_id_t id) const {
     return (get_labels(id)->array() == 1.0).count();
 }
 
-std::size_t DatasetBase::num_negatives(label_id_t id) const {
+long DatasetBase::num_negatives(label_id_t id) const {
     return num_examples() - num_positives(id);
 }
 
@@ -44,11 +45,11 @@ std::shared_ptr<GenericFeatureMatrix> DatasetBase::edit_features() {
 }
 
 
-std::size_t DatasetBase::num_features() const noexcept {
+long DatasetBase::num_features() const noexcept {
     return m_Features->cols();
 }
 
-std::size_t DatasetBase::num_examples() const noexcept {
+long DatasetBase::num_examples() const noexcept {
     return m_Features->rows();
 }
 
@@ -56,7 +57,7 @@ DatasetBase::DatasetBase(SparseFeatures x) : m_Features(std::make_shared<Generic
 DatasetBase::DatasetBase(DenseFeatures x) : m_Features(std::make_shared<GenericFeatureMatrix>(std::move(x))) {}
 
 long MultiLabelData::num_labels() const noexcept {
-    return m_Labels.size();
+    return ssize(m_Labels);
 }
 
 void MultiLabelData::get_labels(label_id_t label, Eigen::Ref<BinaryLabelVector> target) const {
@@ -72,16 +73,16 @@ const std::vector<long>& MultiLabelData::get_label_instances(label_id_t label) c
     return m_Labels.at(label.to_index());
 }
 
-std::size_t MultiLabelData::num_positives(label_id_t id) const {
-    return m_Labels.at(id.to_index()).size();
+long MultiLabelData::num_positives(label_id_t id) const {
+    return ssize(m_Labels.at(id.to_index()));
 }
 
-std::size_t MultiLabelData::num_negatives(label_id_t id) const {
-    return num_examples() - m_Labels.at(id.to_index()).size();
+long MultiLabelData::num_negatives(label_id_t id) const {
+    return num_examples() - ssize(m_Labels.at(id.to_index()));
 }
 
 void MultiLabelData::select_labels(label_id_t start, label_id_t end) {
-    if(end.to_index() < 0 || end.to_index() > m_Labels.size()) {
+    if(end.to_index() < 0 || end.to_index() > num_labels()) {
         end = label_id_t{static_cast<int_fast32_t>(m_Labels.size())};
     }
 

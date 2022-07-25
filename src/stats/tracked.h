@@ -113,7 +113,7 @@ namespace dismec::stats {
          * \sa stats::StatisticsCollection::set_tag
          */
         template<class... Args>
-        void set_tag(tag_id_t tag, int value) {
+        void set_tag(tag_id_t tag, long value) {
             static_assert(sizeof...(Args) == 0, "Unsupported extra args");
             // make m_Collection dependent, so it only needs to be a complete type where we actually call this function
             make_dependent<StatisticsCollection&, Args...>(*m_Collection).set_tag(tag, value);
