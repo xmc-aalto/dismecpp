@@ -31,7 +31,7 @@ PredictionBase::PredictionBase(const DatasetBase* data,
     }
 }
 
-void PredictionBase::make_thread_local_features(int num_threads) {
+void PredictionBase::make_thread_local_features(long num_threads) {
     m_ThreadLocalFeatures.resize(num_threads);
 }
 
@@ -69,9 +69,12 @@ long FullPredictionTaskGenerator::num_tasks() const
 
 void FullPredictionTaskGenerator::run_tasks(long begin, long end, thread_id_t thread_id)
 {
-    do_prediction(begin, end, thread_id, m_Predictions.middleRows(begin, end));
+    do_prediction(begin, end, thread_id, m_Predictions.middleRows(begin, end - begin));
 }
 
+void FullPredictionTaskGenerator::prepare(long num_threads, long chunk_size) {
+    make_thread_local_features(num_threads);
+}
 
 
 TopKPredictionTaskGenerator::TopKPredictionTaskGenerator(const DatasetBase* data, std::shared_ptr<const Model> model, long K) :

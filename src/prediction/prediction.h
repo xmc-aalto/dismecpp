@@ -40,7 +40,7 @@ namespace dismec::prediction {
         const DatasetBase* m_Data;              //!< Data on which the prediction is run
         std::shared_ptr<const Model> m_Model;   //!< Model (possibly partial) for which prediction is run
 
-        void make_thread_local_features(int num_threads);
+        void make_thread_local_features(long num_threads);
 
         void init_thread(thread_id_t thread_id) final;
 
@@ -70,6 +70,7 @@ namespace dismec::prediction {
 
         FullPredictionTaskGenerator(const DatasetBase* data, std::shared_ptr<const Model> model);
 
+        void prepare(long num_threads, long chunk_size) override;
         void run_tasks(long begin, long end, thread_id_t thread_id) override;
         [[nodiscard]] long num_tasks() const override;
 

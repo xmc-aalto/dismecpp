@@ -220,9 +220,6 @@ int main(int argc, const char** argv) {
         std::cout << fmt::format("F1:           {:.3}%\n", percentage(tp, tp + (fp + fn) / 2));
 
     } else {
-        spdlog::error("Full predictions are currently not supported");
-        exit(1);
-        /*
         spdlog::info("Reading model file from '{}'", model_file);
         auto model = io::load_model(model_file);
 
@@ -234,8 +231,7 @@ int main(int argc, const char** argv) {
             std::exit(1);
         }
         const auto& predictions = task.get_predictions();
-        */
 
-        // TODO fix handling of full predictions
+        io::prediction::save_dense_predictions(result_file, predictions);
     }
 }
