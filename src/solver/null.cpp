@@ -40,7 +40,7 @@ MinimizationResult NullOptimizer::run(objective::Objective& objective, Eigen::Re
     // OK, there is something wrong already!
     if(!std::isfinite(f) || !std::isfinite(gnorm)) {
         spdlog::error("Invalid optimization: initial value: {}, gradient norm: {}", f, gnorm);
-        return {MinimizerStatus::FAILED, 0, f, gnorm};
+        return {MinimizerStatus::FAILED, 0, f, gnorm, f, gnorm};
     }
 
     return {MinimizerStatus::SUCCESS, 0, f, gnorm, f, gnorm};

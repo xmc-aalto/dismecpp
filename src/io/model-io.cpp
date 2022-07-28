@@ -347,7 +347,7 @@ auto PartialModelLoader::get_loading_range(label_id_t label_begin, label_id_t la
     SubModelRangeSpec
 {
     auto sub_files = std::equal_range(begin(m_SubFiles), end(m_SubFiles),
-                                      WeightFileEntry{label_begin, label_end - label_begin},
+                                      WeightFileEntry{label_begin, label_end - label_begin, {}, WeightFormat::NULL_FORMAT},
                                       [](const WeightFileEntry& left, const WeightFileEntry& right) {
                                           auto a1 = left.First;
                                           auto a2 = right.First;

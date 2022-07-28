@@ -97,7 +97,7 @@ namespace dismec::objective
          * are the arguments passed to the last call of `project_to_line()`.
          * \todo improve this interface, together with project_to_line, to be less error prone!
          */
-         virtual void declare_vector_on_last_line([[maybe_unused]] const HashVector& location, [[maybe_unused]] real_t t) {};
+         virtual void declare_vector_on_last_line(const HashVector& location, real_t t) {};
 
 
         /*!

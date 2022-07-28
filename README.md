@@ -11,23 +11,6 @@ the original implementation. Some highlights are:
 * Ability to handle dense input features
 * Additional loss functions and regularizers
 
-
-## Building
-The code can be build with cmake:
-```shell script
-mkdir build
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DEVEL_DOCS=Off -S . -B ./build
-cmake --build build --parallel
-```
-The resulting executables and python library will be placed in `./build/bin`
-and `./build/lib` respectively. 
-
-**Attention** Note that dependencies of the code are included in the `deps` directory as
-git submodules. Please ensure that these are properly initialized before building, e.g., by
-`clone`ing the repository with the `--recurive` argument.
-
-Building requires at least GCC8, and we expect [Boost](https://www.boost.org/) to be available on the system.
-
 ## Usage
 To train a model, the `train` program can be used, new predictions can be made
 using the `predict` executable. Calling these programs with `--help` as argument
@@ -72,6 +55,23 @@ have them in a format that is easier for scripting. This can be achieved using t
 `--save-metrics=eurlex-metrics.json`, which will write the metrics to the given json file that
 can be imported, e.g., into a python script.
 
+## Building
+The code can be build with cmake:
+```shell script
+mkdir build
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DEVEL_DOCS=Off -S . -B ./build
+cmake --build build --parallel
+```
+The resulting executables and python library will be placed in `./build/bin`
+and `./build/lib` respectively.
+
+**Attention** Note that dependencies of the code are included in the `deps` directory as
+git submodules. Please ensure that these are properly initialized before building, e.g., by
+`clone`ing the repository with the `--recurive` argument.
+
+Building requires at least GCC8, and we expect [Boost](https://www.boost.org/) 
+to be available on the system.
+
 
 ## Documentation
 If you have doxygen installed, then you can build the documentation 
@@ -91,9 +91,9 @@ for the learning problem, a failure of this test does not necessarily mean that 
 it indicates that the change should be given close attention and additional testing with other datasets, to ensure that
 there are no regressions. To run these tests manually, use the `test/eurlex-test.py` script provided in this repository.
 
-The github CI tests ensure that, with selective warning suppression, the code can be compiled on gcc versions 8 to 12 
-and clang 10 to 14 with `-Wall -Werror`. Building is tested on Ubuntu versions `18.04`, `20.04` and `22.04`, in both
-`Debug` and `Release` configuration.
+The github CI tests ensure that, with [selective warning suppression](doc/warnings.md), 
+the code can be compiled on gcc versions 8 to 12  and clang 10 to 14 with `-Wall -Wextra -Werror`. 
+Building is tested on Ubuntu versions `18.04`, `20.04` and `22.04`, in both `Debug` and `Release` configuration.
 The current status of the builds (including unit tests) is 
 [![Build](https://github.com/xmc-aalto/dismecpp/actions/workflows/build.yml/badge.svg)](https://github.com/xmc-aalto/dismecpp/actions/workflows/build.yml).
 

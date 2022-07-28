@@ -43,6 +43,7 @@ if(${DOXYGEN_FOUND})
             ${PROJECT_SOURCE_DIR}/src
             README.md
             doc/stats.md
+            doc/warnings.md
             COMMENT "Generate HTML docs"
     )
 endif()

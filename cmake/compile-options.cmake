@@ -10,7 +10,8 @@ set(IS_CLANG_10 "$<AND:${IS_CLANG},$<AND:$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_
 set(IS_CLANG_13_14 "$<AND:${IS_CLANG},$<AND:$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,13>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>>>")
 
 # enable all warning in GCC and Clang
-target_compile_options(libdismec_config INTERFACE "$<$<OR:${IS_GCC},${IS_CLANG}>:-Wall>")
+# but make sure some of them are not treated as errors, even with -Werror
+target_compile_options(libdismec_config INTERFACE "$<$<OR:${IS_GCC},${IS_CLANG}>:-Wall;-Wextra;-Wno-error=unused-parameter>")
 
 if (${Boost_VERSION} VERSION_LESS 1.70)
     # Boost version has no histogram support, enable warning-as-error suppression
@@ -19,7 +20,7 @@ if (${Boost_VERSION} VERSION_LESS 1.70)
 endif ()
 
 # The `unused-function` diagnostic seems to be a false positive on GCCs side, but I haven't found a way
-# to disable it only locally with pragmas. So we set a source file property here.
+# to disable it only locally with pragmas. So we set a source file property in the corresponding CMakeLists.txt file.
 set(DISMEC_WORKAROUND_GCC8_BUG "$<${IS_GCC_8}:-Wno-unused-function>")
 
 # on GCC-8 and Clang 10, we need to add a link command when using <filesystem>

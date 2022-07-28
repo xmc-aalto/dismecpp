@@ -31,8 +31,8 @@ namespace dismec::stats {
      * \brief Data that is associated with each declared statistics.
      */
     struct StatisticMetaData {
-        std::string Name;   //!< The name of the stat. This is how it will be identified.
-        std::string Unit;   //!< The unit in which the data points will be supplied. What you would put on the x-axis when plotting a histogram.
+        std::string Name;        //!< The name of the stat. This is how it will be identified.
+        std::string Unit = {};   //!< The unit in which the data points will be supplied. What you would put on the x-axis when plotting a histogram.
     };
 }
 

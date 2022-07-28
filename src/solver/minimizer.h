@@ -28,7 +28,7 @@ namespace dismec::solvers
         double FinalGrad;
         double InitialValue;
         double InitialGrad;
-        std::chrono::milliseconds Duration;
+        std::chrono::milliseconds Duration = {};
     };
 
     class Minimizer : public HyperParameterBase, public stats::Tracked {

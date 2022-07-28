@@ -21,7 +21,7 @@ namespace dismec::init {
         }
         void get_initial_weight(label_id_t label_id,
                                 Eigen::Ref<DenseRealVector> target,
-                                [[maybe_unused]] objective::Objective& objective) override {
+                                objective::Objective& objective) override {
             m_PreTrainedWeights->get_weights_for_label(label_id, target);
         }
     private:

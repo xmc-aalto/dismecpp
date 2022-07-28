@@ -22,7 +22,7 @@ std::shared_ptr<const BinaryLabelVector> DatasetBase::get_labels(label_id_t id) 
     // convert sparse to dense
     auto label_vector = std::make_shared<BinaryLabelVector>(num_examples());
     get_labels(id, *label_vector);
-    return std::move(label_vector);
+    return label_vector;
 }
 
 void BinaryData::get_labels(label_id_t i, Eigen::Ref<BinaryLabelVector> target) const {

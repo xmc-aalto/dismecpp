@@ -96,7 +96,7 @@ MinimizationResult NewtonWithLineSearch::run(objective::Objective& objective, Ei
     // OK, there is something wrong already!
     if(!std::isfinite(f) || !std::isfinite(gnorm) || !std::isfinite(gnorm0)) {
         spdlog::error("Invalid newton optimization: initial value: {}, gradient norm: {}, gnorm_0: {}", f, gnorm, gnorm0);
-        return {MinimizerStatus::FAILED, 0, f, gnorm};
+        return {MinimizerStatus::FAILED, 0, f, gnorm, f, gnorm};
     }
 
     if(m_Logger) {
