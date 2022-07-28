@@ -1,0 +1,28 @@
+var namespacedismec_1_1objective =
+[
+    [ "DenseAndSparseLinearBase", "classdismec_1_1objective_1_1DenseAndSparseLinearBase.html", "classdismec_1_1objective_1_1DenseAndSparseLinearBase" ],
+    [ "DenseAndSparseMargin", "structdismec_1_1objective_1_1DenseAndSparseMargin.html", "structdismec_1_1objective_1_1DenseAndSparseMargin" ],
+    [ "GenericLinearClassifier", "classdismec_1_1objective_1_1GenericLinearClassifier.html", "classdismec_1_1objective_1_1GenericLinearClassifier" ],
+    [ "GenericMarginClassifier", "structdismec_1_1objective_1_1GenericMarginClassifier.html", "structdismec_1_1objective_1_1GenericMarginClassifier" ],
+    [ "LinearClassifierBase", "classdismec_1_1objective_1_1LinearClassifierBase.html", "classdismec_1_1objective_1_1LinearClassifierBase" ],
+    [ "LinearClassifierImpBase", "classdismec_1_1objective_1_1LinearClassifierImpBase.html", "classdismec_1_1objective_1_1LinearClassifierImpBase" ],
+    [ "SquaredHingePhi", "structdismec_1_1objective_1_1SquaredHingePhi.html", "structdismec_1_1objective_1_1SquaredHingePhi" ],
+    [ "HuberPhi", "structdismec_1_1objective_1_1HuberPhi.html", "structdismec_1_1objective_1_1HuberPhi" ],
+    [ "LogisticPhi", "structdismec_1_1objective_1_1LogisticPhi.html", "structdismec_1_1objective_1_1LogisticPhi" ],
+    [ "Objective", "classdismec_1_1objective_1_1Objective.html", "classdismec_1_1objective_1_1Objective" ],
+    [ "PointWiseRegularizer", "classdismec_1_1objective_1_1PointWiseRegularizer.html", "classdismec_1_1objective_1_1PointWiseRegularizer" ],
+    [ "Regularized_SquaredHingeSVC", "classdismec_1_1objective_1_1Regularized__SquaredHingeSVC.html", "classdismec_1_1objective_1_1Regularized__SquaredHingeSVC" ],
+    [ "SquaredNormConfig", "structdismec_1_1objective_1_1SquaredNormConfig.html", "structdismec_1_1objective_1_1SquaredNormConfig" ],
+    [ "HuberConfig", "structdismec_1_1objective_1_1HuberConfig.html", "structdismec_1_1objective_1_1HuberConfig" ],
+    [ "ElasticConfig", "structdismec_1_1objective_1_1ElasticConfig.html", "structdismec_1_1objective_1_1ElasticConfig" ],
+    [ "SquaredNormRegularizer", "classdismec_1_1objective_1_1SquaredNormRegularizer.html", "classdismec_1_1objective_1_1SquaredNormRegularizer" ],
+    [ "HuberRegularizer", "classdismec_1_1objective_1_1HuberRegularizer.html", "classdismec_1_1objective_1_1HuberRegularizer" ],
+    [ "ElasticNetRegularizer", "classdismec_1_1objective_1_1ElasticNetRegularizer.html", "classdismec_1_1objective_1_1ElasticNetRegularizer" ],
+    [ "make_huber_hinge", "namespacedismec_1_1objective.html#a5c756f4ed809ab724b6bb24fc6709638", null ],
+    [ "make_logistic_loss", "namespacedismec_1_1objective.html#a8e80a5e5766b7aa67a7de2f9cf4c1d35", null ],
+    [ "make_regularizer", "namespacedismec_1_1objective.html#ae798a0a6c03cfff02ab769e961fb8945", null ],
+    [ "make_regularizer", "namespacedismec_1_1objective.html#a36a0c89054535c0cdeab9b928a153db8", null ],
+    [ "make_regularizer", "namespacedismec_1_1objective.html#a342ed86845816f46e779a041252afa94", null ],
+    [ "make_sp_dense_squared_hinge", "namespacedismec_1_1objective.html#afdb680d126308531ee8d8099030a8370", null ],
+    [ "make_squared_hinge", "namespacedismec_1_1objective.html#ae6c6af745ff5edbb45b5ab4a64033272", null ]
+];

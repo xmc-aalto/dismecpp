@@ -1,0 +1,26 @@
+var classdismec_1_1objective_1_1LinearClassifierBase =
+[
+    [ "LinearClassifierBase", "classdismec_1_1objective_1_1LinearClassifierBase.html#a5669489f74c2cea794e6dfcbc9de2872", null ],
+    [ "costs", "classdismec_1_1objective_1_1LinearClassifierBase.html#a5765cbf1b021bd52d727837a3c94508a", null ],
+    [ "declare_vector_on_last_line", "classdismec_1_1objective_1_1LinearClassifierBase.html#a6f5b0ebaa7bf83fccc19cf59f7a9a054", null ],
+    [ "dense_features", "classdismec_1_1objective_1_1LinearClassifierBase.html#a5813d553de1f2411df5794b38e3e0def", null ],
+    [ "generic_features", "classdismec_1_1objective_1_1LinearClassifierBase.html#af8ebd04f26e51b6eb401308d0863eb46", null ],
+    [ "get_label_ref", "classdismec_1_1objective_1_1LinearClassifierBase.html#aebf31cc8e26458a1366d8d8aced4eb96", null ],
+    [ "invalidate_labels", "classdismec_1_1objective_1_1LinearClassifierBase.html#a51f04b64c195ac5b9dec142c1ac13af6", null ],
+    [ "labels", "classdismec_1_1objective_1_1LinearClassifierBase.html#aecd9b6298337785e0fd3b86ba96c62ea", null ],
+    [ "line_interpolation", "classdismec_1_1objective_1_1LinearClassifierBase.html#ac90e5639e1ad041b6c751e538fbbe7e7", null ],
+    [ "num_instances", "classdismec_1_1objective_1_1LinearClassifierBase.html#a352f578f542fba14422b47aa65c10918", null ],
+    [ "num_variables", "classdismec_1_1objective_1_1LinearClassifierBase.html#a4831d7dd08cffa1f9dcb58d692c19235", null ],
+    [ "project_linear_to_line", "classdismec_1_1objective_1_1LinearClassifierBase.html#ad1887321866ad8855db17d263581c332", null ],
+    [ "sparse_features", "classdismec_1_1objective_1_1LinearClassifierBase.html#a271b34e96e9dfc1f1be7d000591f2f59", null ],
+    [ "update_costs", "classdismec_1_1objective_1_1LinearClassifierBase.html#ac48f6f9095bf90ab658511b7397a9e39", null ],
+    [ "update_xtw_cache", "classdismec_1_1objective_1_1LinearClassifierBase.html#a69f23db7b818e21fda5ce6c3e24b6fbf", null ],
+    [ "x_times_w", "classdismec_1_1objective_1_1LinearClassifierBase.html#afcfd67ae71e74954bd8177f2e52e4de1", null ],
+    [ "m_Costs", "classdismec_1_1objective_1_1LinearClassifierBase.html#a6ba7a516b1379f1aaa96444f30e2eb08", null ],
+    [ "m_FeatureMatrix", "classdismec_1_1objective_1_1LinearClassifierBase.html#a2bd6bb85496c73adb31ee2764d301f7b", null ],
+    [ "m_Last_W", "classdismec_1_1objective_1_1LinearClassifierBase.html#a3bac882c14411ea93e193f021da0dc1f", null ],
+    [ "m_LsCache_xTd", "classdismec_1_1objective_1_1LinearClassifierBase.html#ae12eb129fe42f5e2f6fdfa2829e30552", null ],
+    [ "m_LsCache_xTw", "classdismec_1_1objective_1_1LinearClassifierBase.html#a74be0ce663e9b2e76db81b4b921c2ca0", null ],
+    [ "m_X_times_w", "classdismec_1_1objective_1_1LinearClassifierBase.html#a31e97f8cdbff1e13b3099836ae23c45f", null ],
+    [ "m_Y", "classdismec_1_1objective_1_1LinearClassifierBase.html#aa0a82836b4367957f88d44b54572182a", null ]
+];
