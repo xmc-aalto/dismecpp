@@ -89,8 +89,14 @@ namespace dismec::io {
     /*!
      * \brief Loads a matrix from a numpy array.
      */
-     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> load_matrix_from_npy(std::istream& source);
-     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> load_matrix_from_npy(const std::string& path);
+    types::DenseRowMajor<real_t> load_matrix_from_npy(std::istream& source);
+    types::DenseRowMajor<real_t> load_matrix_from_npy(const std::string& path);
+
+    /*!
+     * \brief Saves a matrix to a numpy array.
+     */
+    void save_matrix_to_npy(std::ostream& source, const types::DenseRowMajor<real_t>&);
+    void save_matrix_to_npy(const std::string& path, const types::DenseRowMajor<real_t>&);
 }
 
 #endif //DISMEC_NUMPY_H

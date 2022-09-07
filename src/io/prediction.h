@@ -51,10 +51,19 @@ namespace dismec::io::prediction
      * \param target Path to the file which will be created or overwritten, or output stream.
      * \param values Matrix with the results. Each row corresponds to an instance and each column to a label.
      */
-    void save_dense_predictions(const path& target, const PredictionMatrix& values);
+    void save_dense_predictions_as_txt(const path& target, const PredictionMatrix& values);
 
-    /// \copydoc save_dense_predictions()
-    void save_dense_predictions(std::ostream& target, const PredictionMatrix& values);
+    /// \copydoc save_dense_predictions_as_txt()
+    void save_dense_predictions_as_txt(std::ostream& target, const PredictionMatrix& values);
+    /*!
+     * \brief Saves predictions as a dense npy file.
+     * \param target Path to the file which will be created or overwritten, or output stream.
+     * \param values Matrix with the results. Each row corresponds to an instance and each column to a label.
+     */
+    void save_dense_predictions_as_npy(const path& target, const PredictionMatrix& values);
+
+    /// \copydoc save_dense_predictions_as_npy()
+    void save_dense_predictions_as_npy(std::ostream& target, const PredictionMatrix& values);
 }
 
 #endif //DISMEC_IO_PREDICTION_H

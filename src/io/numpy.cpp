@@ -316,9 +316,25 @@ namespace {
             THROW_ERROR("Currently, only row-major npy files can be read");
         }
 
+        // load the matrix row-by-row, to make sure this works even if Eigen decides to include padding
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> target(header.Rows, header.Cols);
-        io::binary_load(source, target.data(), target.data() + header.Rows * header.Cols);
+        for(int row = 0; row < target.rows(); ++row) {
+            auto row_data = target.row(row);
+            io::binary_load(source, row_data.data(), row_data.data() + row_data.size());
+        }
+
         return target;
+    }
+
+    template<class T>
+    void save_matrix_to_npy_imp(std::streambuf& target, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& matrix) {
+        io::write_npy_header(target, io::make_npy_description(matrix));
+
+        // save the matrix row-by-row, to make sure this works even if Eigen decides to include padding
+        for(int row = 0; row < matrix.rows(); ++row) {
+            const auto& row_data = matrix.row(row);
+            io::binary_dump(target, row_data.data(), row_data.data() + row_data.size());
+        }
     }
 
 }
@@ -333,6 +349,20 @@ Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> io::load_
         THROW_ERROR("Could not open file {} for reading.", path)
     }
     return load_matrix_from_npy(file);
+}
+
+void io::save_matrix_to_npy(std::ostream& source,
+                            const Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& matrix) {
+    save_matrix_to_npy_imp(*source.rdbuf(), matrix);
+}
+
+void io::save_matrix_to_npy(const std::string& path,
+                            const Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& matrix) {
+    std::ofstream file(path);
+    if(!file.is_open()) {
+        THROW_ERROR("Could not open file {} for writing.", path)
+    }
+    return save_matrix_to_npy(file, matrix);
 }
 
 
@@ -491,4 +521,16 @@ TEST_CASE("make description") {
     CHECK(io::make_npy_description("<f8", false, 5) == "{\"descr\": \"<f8\", \"fortran_order\": False, \"shape\": (5,)}");
     CHECK(io::make_npy_description(">i4", true, 17) == "{\"descr\": \">i4\", \"fortran_order\": True, \"shape\": (17,)}");
     CHECK(io::make_npy_description("<f8", false, 7, 5) == "{\"descr\": \"<f8\", \"fortran_order\": False, \"shape\": (7, 5)}");
+}
+
+TEST_CASE("save/load round trip") {
+    std::ostringstream save_stream;
+    types::DenseRowMajor<real_t> matrix = types::DenseRowMajor<real_t>::Random(4, 5);
+    io::save_matrix_to_npy(save_stream, matrix);
+
+    std::istringstream load_stream;
+    load_stream.str(save_stream.str());
+    auto ref = io::load_matrix_from_npy(load_stream);
+
+    CHECK( matrix == ref );
 }

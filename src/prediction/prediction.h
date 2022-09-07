@@ -40,6 +40,8 @@ namespace dismec::prediction {
         const DatasetBase* m_Data;              //!< Data on which the prediction is run
         std::shared_ptr<const Model> m_Model;   //!< Model (possibly partial) for which prediction is run
 
+        /// This function resizes the internal thread local feature buffer to correspond to the number of threads.
+        /// This needs to be called before any call to `init_thread()`.
         void make_thread_local_features(long num_threads);
 
         void init_thread(thread_id_t thread_id) final;

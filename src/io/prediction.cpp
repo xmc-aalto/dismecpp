@@ -5,6 +5,7 @@
 
 #include "io/prediction.h"
 #include "io/common.h"
+#include "io/numpy.h"
 #include <fstream>
 
 using namespace dismec;
@@ -99,16 +100,24 @@ std::pair<IndexMatrix, PredictionMatrix> prediction::read_sparse_prediction(cons
     return read_sparse_prediction(stream);
 }
 
-void prediction::save_dense_predictions(const path& target, const PredictionMatrix & values) {
+void prediction::save_dense_predictions_as_txt(const path& target, const PredictionMatrix & values) {
     std::fstream file(target, std::fstream::out);
-    save_dense_predictions(file, values);
+    save_dense_predictions_as_txt(file, values);
 }
 
-void prediction::save_dense_predictions(std::ostream& target, const PredictionMatrix& values) {
+void prediction::save_dense_predictions_as_txt(std::ostream& target, const PredictionMatrix& values) {
     target << values.rows() << " " << values.cols() << "\n";
     for(int row = 0; row < values.rows(); ++row) {
         io::write_vector_as_text(target, values.row(row)) << '\n';
     }
+}
+void prediction::save_dense_predictions_as_npy(const path& target, const PredictionMatrix & values) {
+    std::fstream file(target, std::fstream::out);
+    save_dense_predictions_as_npy(file, values);
+}
+
+void prediction::save_dense_predictions_as_npy(std::ostream& target, const PredictionMatrix& values) {
+    io::save_matrix_to_npy(target, values);
 }
 
 #include "doctest.h"
@@ -220,6 +229,6 @@ TEST_CASE("save_dense_predictions")
             "1.5 0.9 0.4\n";
 
     std::stringstream target;
-    prediction::save_dense_predictions(target, values);
+    prediction::save_dense_predictions_as_txt(target, values);
     CHECK(target.str() == as_text);
 }

@@ -91,6 +91,7 @@ int main(int argc, const char** argv) {
     std::filesystem::path save_metrics;
     int threads = -1;
     int top_k = 5;
+    bool save_as_npy = false;
 
     DataProcessing DataProc;
     DataProc.setup_data_args(app);
@@ -101,6 +102,7 @@ int main(int argc, const char** argv) {
     app.add_option("--save-metrics", save_metrics, "Target file in which the metric values are saved");
     app.add_option("--topk, --top-k", top_k, "Only the top k predictions will be saved. "
                                              "Set to -1 if you need all predictions. (Warning: This may result in very large files!)");
+    app.add_flag("--save-as-npy", save_as_npy, "Save the predictions as a numpy file instead of plain text.");
     int Verbose = 0;
     app.add_flag("-v", Verbose);
 
@@ -232,6 +234,10 @@ int main(int argc, const char** argv) {
         }
         const auto& predictions = task.get_predictions();
 
-        io::prediction::save_dense_predictions(result_file, predictions);
+        if(save_as_npy) {
+            io::prediction::save_dense_predictions_as_npy(result_file, predictions);
+        } else {
+            io::prediction::save_dense_predictions_as_txt(result_file, predictions);
+        }
     }
 }
