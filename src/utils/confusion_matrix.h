@@ -6,6 +6,8 @@
 #ifndef DISMEC_SRC_UTILS_CONFUSION_MATRIX_H
 #define DISMEC_SRC_UTILS_CONFUSION_MATRIX_H
 
+#include <cmath>
+
 namespace dismec::confusion_matrix_detail {
     template<class T>
     struct ConfusionMatrixBase {

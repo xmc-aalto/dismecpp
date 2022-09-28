@@ -6,6 +6,7 @@
 #ifndef DISMEC_FAST_SPARSE_ITER_H
 #define DISMEC_FAST_SPARSE_ITER_H
 
+#include "matrix_types.h"
 
 namespace dismec
 {

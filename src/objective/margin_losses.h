@@ -7,6 +7,7 @@
 #define DISMEC_SRC_OBJECTIVE_MARGIN_LOSSES_H
 
 #include "config.h"
+#include <cmath>
 
 // The structs defined here are used in a template.
 
