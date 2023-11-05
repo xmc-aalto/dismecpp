@@ -81,7 +81,7 @@ long CGMinimizer::do_minimize(const MatrixVectorProductFn& A, const DenseRealVec
 TEST_CASE("conjugate gradient") {
     const int TEST_SIZE = 5;
     auto minimizer = CGMinimizer(TEST_SIZE);
-    minimizer.set_epsilon(0.001);
+    minimizer.set_epsilon(0.0001);
     types::DenseColMajor<real_t> A = types::DenseColMajor<real_t>::Random(TEST_SIZE, TEST_SIZE);
     A = (A*A.transpose()).eval();  // ensure symmetric, PSD matrix
     DenseRealVector b = DenseRealVector::Random(TEST_SIZE);
