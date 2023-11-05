@@ -112,3 +112,14 @@ set_target_properties(unittest PROPERTIES DoctestsEnabled ON)
 add_subdirectory(tools)
 
 add_test(NAME unittest COMMAND unittest)
+
+# header tests
+file(GLOB_RECURSE HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h)
+add_executable(test-compile-header EXCLUDE_FROM_ALL test/test_headers.cpp)
+foreach(HEADER ${HEADERS})
+    string(MAKE_C_IDENTIFIER "${HEADER}" HEADER_TEST_FILE)
+    set(TEST_COMPILE_FILE "${CMAKE_CURRENT_BINARY_DIR}/test_header/${HEADER_TEST_FILE}.cpp")
+    configure_file(test/test_header.cpp.in ${TEST_COMPILE_FILE} @ONLY)
+    target_sources(test-compile-header PUBLIC ${TEST_COMPILE_FILE})
+    target_link_libraries(test-compile-header PUBLIC libdismec CLI11::CLI11 pybind11::module)
+endforeach()
