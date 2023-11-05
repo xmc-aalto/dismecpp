@@ -1,0 +1,55 @@
+var namespacedismec_1_1io =
+[
+    [ "detail", "namespacedismec_1_1io_1_1detail.html", [
+      [ "print_char", "namespacedismec_1_1io_1_1detail.html#a92152b9c307197276a0c8963cf7f58b7", null ]
+    ] ],
+    [ "model", "namespacedismec_1_1io_1_1model.html", "namespacedismec_1_1io_1_1model" ],
+    [ "prediction", "namespacedismec_1_1io_1_1prediction.html", [
+      [ "read_sparse_prediction", "namespacedismec_1_1io_1_1prediction.html#a09e646468578da8383b0e7e10653aef5", null ],
+      [ "read_sparse_prediction", "namespacedismec_1_1io_1_1prediction.html#a466e8fc030342bb6e0ba8baf5b47a1c8", null ],
+      [ "save_dense_predictions_as_npy", "namespacedismec_1_1io_1_1prediction.html#a3eee07118b7709b23aaac687b481a15a", null ],
+      [ "save_dense_predictions_as_npy", "namespacedismec_1_1io_1_1prediction.html#a6a7aa6b566aaf29b0d7ac18d3a4d267c", null ],
+      [ "save_dense_predictions_as_txt", "namespacedismec_1_1io_1_1prediction.html#a03ae25a40b3b54c98493b6be8700519a", null ],
+      [ "save_dense_predictions_as_txt", "namespacedismec_1_1io_1_1prediction.html#a69bb5b1ab29e0ef6566bb2914d6a87bb", null ],
+      [ "save_sparse_predictions", "namespacedismec_1_1io_1_1prediction.html#ab9d99c2220a3953adeb43f8f86574ca7", null ],
+      [ "save_sparse_predictions", "namespacedismec_1_1io_1_1prediction.html#ad523960f043451f790037d9890557fe1", null ]
+    ] ],
+    [ "MatrixHeader", "structdismec_1_1io_1_1MatrixHeader.html", "structdismec_1_1io_1_1MatrixHeader" ],
+    [ "LoLBinarySparse", "structdismec_1_1io_1_1LoLBinarySparse.html", "structdismec_1_1io_1_1LoLBinarySparse" ],
+    [ "NpyHeaderData", "structdismec_1_1io_1_1NpyHeaderData.html", "structdismec_1_1io_1_1NpyHeaderData" ],
+    [ "IndexMode", "namespacedismec_1_1io.html#aca6a4dd1337ff47e10708aa5c89125cc", [
+      [ "ZERO_BASED", "namespacedismec_1_1io.html#aca6a4dd1337ff47e10708aa5c89125cca9c9fef803506783391e99dfa8ee00dbc", null ],
+      [ "ONE_BASED", "namespacedismec_1_1io.html#aca6a4dd1337ff47e10708aa5c89125cca3ad6cf6c037cc6d3c69fd3d073ae9d62", null ]
+    ] ],
+    [ "binary_dump", "namespacedismec_1_1io.html#a46d840fdf098b0a26d8f9bd633dc2ac3", null ],
+    [ "binary_load", "namespacedismec_1_1io.html#aa28e4eb0f9f23b5a68514de14a8a94b3", null ],
+    [ "data_type_string", "namespacedismec_1_1io.html#a83e8bc20b1839a2a857db42a1e8240fe", null ],
+    [ "is_npy", "namespacedismec_1_1io.html#ac1dbedf1f73a7ffd6ad5fab36d11d41c", null ],
+    [ "load_matrix_from_npy", "namespacedismec_1_1io.html#ad24c1f6a54ffb39cd8419b8d80cd977c", null ],
+    [ "load_matrix_from_npy", "namespacedismec_1_1io.html#acdcf6ec221e87329f88e9927188d9d3d", null ],
+    [ "make_npy_description", "namespacedismec_1_1io.html#a7c3b2780dd6b368c1c3b35d59ab235b6", null ],
+    [ "make_npy_description", "namespacedismec_1_1io.html#aba3747a54828b161a96f4d3a31158dd7", null ],
+    [ "make_npy_description", "namespacedismec_1_1io.html#a550bb73c579810f3860f9050694d37a4", null ],
+    [ "parse_header", "namespacedismec_1_1io.html#a57dee61b3efb56fde364719ee37a3353", null ],
+    [ "parse_long", "namespacedismec_1_1io.html#ae5033ca504fb7b3ef4ceec9272b05ec6", null ],
+    [ "parse_npy_header", "namespacedismec_1_1io.html#af6a9fcd851b675eb9a7f68e149a60324", null ],
+    [ "parse_sparse_vector_from_text", "namespacedismec_1_1io.html#ae96617c0a9ada3f617d8cdf47c68bab9", null ],
+    [ "read_binary_matrix_as_lol", "namespacedismec_1_1io.html#abcc34795cc52cf1624b506e5416fcd43", null ],
+    [ "read_slice_dataset", "namespacedismec_1_1io.html#afcce7e0462632352958411e45c39b56c", null ],
+    [ "read_slice_dataset", "namespacedismec_1_1io.html#a305c828c52ac67729faae7f131606b2f", null ],
+    [ "read_vector_from_text", "namespacedismec_1_1io.html#a40d46826bb5ea6fe9a7a83a996974270", null ],
+    [ "read_xmc_dataset", "namespacedismec_1_1io.html#a1725a495cdff751fa643e4c5381f7e95", null ],
+    [ "read_xmc_dataset", "namespacedismec_1_1io.html#ab62c1fa9972c2d88ecc87250df8b9dad", null ],
+    [ "REGISTER_DTYPE", "namespacedismec_1_1io.html#a8664876cf7e199434aa102491141eb62", null ],
+    [ "REGISTER_DTYPE", "namespacedismec_1_1io.html#a6a30ee71e0501f887c195a2192356995", null ],
+    [ "REGISTER_DTYPE", "namespacedismec_1_1io.html#a8b4d39c0674c3952f9f0c5ae25f74307", null ],
+    [ "REGISTER_DTYPE", "namespacedismec_1_1io.html#a53e510421768842e4293c6279da59ece", null ],
+    [ "REGISTER_DTYPE", "namespacedismec_1_1io.html#a6f073206e35a1a5374f223f3067934b9", null ],
+    [ "REGISTER_DTYPE", "namespacedismec_1_1io.html#a8bcb041e8be8e2b51893e60a9c0d35a9", null ],
+    [ "save_matrix_to_npy", "namespacedismec_1_1io.html#a8eaf2a3174c4fa255abaeb97e61b2bc4", null ],
+    [ "save_matrix_to_npy", "namespacedismec_1_1io.html#aee5e0a282a00ac4f1d615c6c76129c3e", null ],
+    [ "save_xmc_dataset", "namespacedismec_1_1io.html#a32f833d4f756568b5791079c4f9f6d5d", null ],
+    [ "save_xmc_dataset", "namespacedismec_1_1io.html#a7a7b214d4a5d122e374ceb1aacb2ce18", null ],
+    [ "write_npy_header", "namespacedismec_1_1io.html#ab35e608c60dfc540a671e6eb5a5c095e", null ],
+    [ "write_vector_as_text", "namespacedismec_1_1io.html#a1e0642599c659e230d1829a8b11afe58", null ]
+];

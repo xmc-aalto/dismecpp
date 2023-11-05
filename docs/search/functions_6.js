@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['f_5fbeta_1883',['f_beta',['../namespacedismec_1_1confusion__matrix__detail.html#a85f79a734a1bd6405b6d65532ffd70e9',1,'dismec::confusion_matrix_detail']]],
+  ['false_5fdiscovery_5frate_1884',['false_discovery_rate',['../namespacedismec_1_1confusion__matrix__detail.html#ab1e8be70b42c11100d8b2ae36ca7d6f4',1,'dismec::confusion_matrix_detail']]],
+  ['false_5fnegative_5ffraction_1885',['false_negative_fraction',['../namespacedismec_1_1confusion__matrix__detail.html#a84f2788c258499cc840b61c5f290eae9',1,'dismec::confusion_matrix_detail']]],
+  ['false_5fnegative_5frate_1886',['false_negative_rate',['../namespacedismec_1_1confusion__matrix__detail.html#a9630effd598c3717981ac041cb7d55e0',1,'dismec::confusion_matrix_detail']]],
+  ['false_5fomission_5frate_1887',['false_omission_rate',['../namespacedismec_1_1confusion__matrix__detail.html#aaa1c67c25a50530acf469b85e68f0f29',1,'dismec::confusion_matrix_detail']]],
+  ['false_5fpositive_5ffraction_1888',['false_positive_fraction',['../namespacedismec_1_1confusion__matrix__detail.html#a657376612eef9cfe9e2ab561d8bbbd4e',1,'dismec::confusion_matrix_detail']]],
+  ['false_5fpositive_5frate_1889',['false_positive_rate',['../namespacedismec_1_1confusion__matrix__detail.html#a6bf5d2c01f4b441be907954855f6d479',1,'dismec::confusion_matrix_detail']]],
+  ['fast_5fdot_1890',['fast_dot',['../namespacedismec.html#a1ed2b4105fcbe93a161455b1f24b2c63',1,'dismec']]],
+  ['fastsparserowiter_1891',['FastSparseRowIter',['../classdismec_1_1FastSparseRowIter.html#a600864b2ed0f216627c02de9c9c1e9fb',1,'dismec::FastSparseRowIter']]],
+  ['features_1892',['features',['../classdismec_1_1objective_1_1Regularized__SquaredHingeSVC.html#ae38f0e0a8b364a57bfe71159cc9dddc9',1,'dismec::objective::Regularized_SquaredHingeSVC']]],
+  ['finalize_1893',['finalize',['../classdismec_1_1TrainingTaskGenerator.html#a632609d6eb28c09fb73a4468fede3f97',1,'dismec::TrainingTaskGenerator::finalize()'],['../classdismec_1_1TrainingStatsGatherer.html#aa8d0e10b3c0ffcb6ce17a58008254df8',1,'dismec::TrainingStatsGatherer::finalize()'],['../classdismec_1_1prediction_1_1TopKPredictionTaskGenerator.html#a4b6bb78ea8894592fcff57a0c4bc04cb',1,'dismec::prediction::TopKPredictionTaskGenerator::finalize()'],['../classdismec_1_1prediction_1_1EvaluateMetrics.html#a5bf8383fbe8f4b3bbb8ba6a5969a8fe0',1,'dismec::prediction::EvaluateMetrics::finalize()'],['../classdismec_1_1parallel_1_1TaskGenerator.html#a3b39eff24298ad156411c9cd6418d979',1,'dismec::parallel::TaskGenerator::finalize()'],['../classdismec_1_1io_1_1model_1_1PartialModelSaver.html#a0a11816ca461bb21679ef21d6d186b85',1,'dismec::io::model::PartialModelSaver::finalize()']]],
+  ['find_5finitial_5fbounds_1894',['find_initial_bounds',['../classdismec_1_1postproc_1_1Sparsify.html#a923f31378f3755e0e407a0d19aca053e',1,'dismec::postproc::Sparsify']]],
+  ['for_5feach_5fshared_5fcache_5fsibling_1895',['for_each_shared_cache_sibling',['../namespaceanonymous__namespace_02numa_8cpp_03.html#a515ad3a7a238dcaeee480711ecf73db6',1,'anonymous_namespace{numa.cpp}']]],
+  ['for_5feach_5fsibling_1896',['for_each_sibling',['../namespaceanonymous__namespace_02numa_8cpp_03.html#a8299c1219f344e00527e52d3f60dfe03',1,'anonymous_namespace{numa.cpp}']]],
+  ['fowlkes_5fmallows_1897',['fowlkes_mallows',['../namespacedismec_1_1confusion__matrix__detail.html#a34aba0b1812b5efd158c72cd01087baf',1,'dismec::confusion_matrix_detail']]],
+  ['fullpredictiontaskgenerator_1898',['FullPredictionTaskGenerator',['../classdismec_1_1prediction_1_1FullPredictionTaskGenerator.html#acf388c19b7097eed72ec9e0eae9369f1',1,'dismec::prediction::FullPredictionTaskGenerator']]],
+  ['fullrecordstat_1899',['FullRecordStat',['../classdismec_1_1stats_1_1FullRecordStat.html#a4a130f06971de4081c79157331f7cca6',1,'dismec::stats::FullRecordStat']]]
+];

@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['tag_5fiteration_2741',['TAG_ITERATION',['../namespaceanonymous__namespace_02null_8cpp_03.html#ab059f934f28c156e16cb792901b635cd',1,'anonymous_namespace{null.cpp}::TAG_ITERATION()'],['../namespaceanonymous__namespace_02newton_8cpp_03.html#ac51e5d2d256e25063f99f00f95d6aa02',1,'anonymous_namespace{newton.cpp}::TAG_ITERATION()']]],
+  ['tag_5flabel_5ffreq_2742',['TAG_LABEL_FREQ',['../namespaceanonymous__namespace_02statistics_8cpp_03.html#afdedd73c2c60c1bbfc961cdd1a46fca6',1,'anonymous_namespace{statistics.cpp}']]],
+  ['tag_5flabel_5fid_2743',['TAG_LABEL_ID',['../namespaceanonymous__namespace_02statistics_8cpp_03.html#a0343ad135a7f39ee91a9721e424a346a',1,'anonymous_namespace{statistics.cpp}']]],
+  ['target_2744',['Target',['../structanonymous__namespace_02sparse_8cpp_03_1_1SetWeightsVisitor.html#aca38029a6f38c76124dc95329cb356ff',1,'anonymous_namespace{sparse.cpp}::SetWeightsVisitor::Target()'],['../structanonymous__namespace_02sparse_8cpp_03_1_1PredictVisitor.html#a0e919a3fb7f83c0ff7d97e2c3be023d5',1,'anonymous_namespace{sparse.cpp}::PredictVisitor::Target()']]],
+  ['test_5ffile_2745',['TEST_FILE',['../io_2test_8cpp.html#a09dfcf142b6e08527edbf76a24cdaca9',1,'test.cpp']]],
+  ['tfidffile_2746',['TfIdfFile',['../classTrainingProgram.html#a520da8cedb7c3919cc228e3d82259a18',1,'TrainingProgram']]],
+  ['timeout_2747',['Timeout',['../classTrainingProgram.html#ad8d59f4c1367cf0931fe7545fd73d788',1,'TrainingProgram']]],
+  ['total_5flabels_2748',['total_labels',['../structdismec_1_1model_1_1PartialModelSpec.html#ad0647e663e7c9c54af99cd39c8203db6',1,'dismec::model::PartialModelSpec']]],
+  ['totalgrad_2749',['TotalGrad',['../structdismec_1_1TrainingResult.html#a34ccc5816274548fe3663d895a75051d',1,'dismec::TrainingResult']]],
+  ['totalloss_2750',['TotalLoss',['../structdismec_1_1TrainingResult.html#aee3000b59c5f5c0d6d1c756eb31b63fa',1,'dismec::TrainingResult']]],
+  ['transformdata_2751',['TransformData',['../classdismec_1_1DataProcessing.html#a4c17dd2b0876f132ab179a98ac736170',1,'dismec::DataProcessing']]],
+  ['transformsparse_2752',['TransformSparse',['../classTrainingProgram.html#aa04ef352d40d25485d45bf67157a572c',1,'TrainingProgram']]],
+  ['true_5fnegatives_2753',['TRUE_NEGATIVES',['../classdismec_1_1prediction_1_1TopKPredictionTaskGenerator.html#a868407d005d77e22c006296dc53402f1',1,'dismec::prediction::TopKPredictionTaskGenerator']]],
+  ['true_5fpositives_2754',['TRUE_POSITIVES',['../classdismec_1_1prediction_1_1TopKPredictionTaskGenerator.html#a146104965bd442f7cee231f24e76403d',1,'dismec::prediction::TopKPredictionTaskGenerator']]],
+  ['truenegatives_2755',['TrueNegatives',['../structdismec_1_1confusion__matrix__detail_1_1ConfusionMatrixBase.html#a10e0f36ba01b328d0ec0cd9ded5c0fcb',1,'dismec::confusion_matrix_detail::ConfusionMatrixBase']]],
+  ['truepositives_2756',['TruePositives',['../structdismec_1_1confusion__matrix__detail_1_1ConfusionMatrixBase.html#aef3360c6938153ae22f9041ede6cce5f',1,'dismec::confusion_matrix_detail::ConfusionMatrixBase']]]
+];

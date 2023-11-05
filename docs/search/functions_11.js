@@ -1,0 +1,4 @@
+var searchData=
+[
+  ['quad_2168',['quad',['../structanonymous__namespace_02dense__and__sparse_8cpp_03_1_1L2Regularizer.html#a8ee6b9229fbf72aec8a030f748826c78',1,'anonymous_namespace{dense_and_sparse.cpp}::L2Regularizer::quad()'],['../structanonymous__namespace_02dense__and__sparse_8cpp_03_1_1ZeroPhi.html#a3e353389bbd54681755c18baec2a644e',1,'anonymous_namespace{dense_and_sparse.cpp}::ZeroPhi::quad()'],['../structdismec_1_1objective_1_1SquaredHingePhi.html#a091cd19ffd0f57ee442738d254e9ca0e',1,'dismec::objective::SquaredHingePhi::quad()'],['../structdismec_1_1objective_1_1HuberPhi.html#ad5a654c248775f258113a23739d83d4e',1,'dismec::objective::HuberPhi::quad()'],['../structdismec_1_1objective_1_1LogisticPhi.html#ac396e65b3cc6bfbaf655c45ce8773124',1,'dismec::objective::LogisticPhi::quad()']]]
+];
