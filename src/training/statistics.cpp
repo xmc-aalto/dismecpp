@@ -62,7 +62,7 @@ void TrainingStatsGatherer::finalize() {
 }
 
 TrainingStatsGatherer::~TrainingStatsGatherer() {
-    if(!m_TargetFile.empty()) {
+    if(!m_TargetFile.empty() && !m_Merged.empty()) {
         nlohmann::json result = to_json();
         std::fstream target(m_TargetFile, std::fstream::out);
         target << std::setw(2) << result << "\n";
